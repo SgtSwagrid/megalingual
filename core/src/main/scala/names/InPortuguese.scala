@@ -1,0 +1,68 @@
+package com.alecdorrington.megalingual
+package names
+
+import com.alecdorrington.megalingual.Language.*
+
+/**
+  * Every language's name in Brazilian Portuguese, which European Portuguese
+  * overrides where it differs.
+  */
+private[megalingual] object InPortuguese:
+
+  def apply(language: Language): String = language match
+    case Arabic               => "árabe"
+    case Bengali              => "bengali"
+    case Bulgarian            => "búlgaro"
+    case Catalan              => "catalão"
+    case Chinese              => "chinês"
+    case SimplifiedChinese    => "chinês simplificado"
+    case TraditionalChinese   => "chinês tradicional"
+    case Cantonese            => "cantonês"
+    case Croatian             => "croata"
+    case Czech                => "tcheco"
+    case Danish               => "dinamarquês"
+    case Dutch                => "holandês"
+    case English              => "inglês"
+    case BritishEnglish       => "inglês britânico"
+    case AmericanEnglish      => "inglês americano"
+    case AustralianEnglish    => "inglês australiano"
+    case Estonian             => "estoniano"
+    case Filipino             => "filipino"
+    case Finnish              => "finlandês"
+    case French               => "francês"
+    case German               => "alemão"
+    case GermanGerman         => "alemão (Alemanha)"
+    case SwissGerman          => "alemão padrão suíço"
+    case Greek                => "grego"
+    case Hebrew               => "hebraico"
+    case Hindi                => "híndi"
+    case Hungarian            => "húngaro"
+    case Indonesian           => "indonésio"
+    case Italian              => "italiano"
+    case Japanese             => "japonês"
+    case Korean               => "coreano"
+    case Latvian              => "letão"
+    case Lithuanian           => "lituano"
+    case Malay                => "malaio"
+    case Norwegian            => "norueguês"
+    case Persian              => "persa"
+    case Polish               => "polonês"
+    case Portuguese           => "português"
+    case BrazilianPortuguese  => "português brasileiro"
+    case EuropeanPortuguese   => "português europeu"
+    case Romanian             => "romeno"
+    case Russian              => "russo"
+    case Serbian              => "sérvio"
+    case Slovak               => "eslovaco"
+    case Slovenian            => "esloveno"
+    case Spanish              => "espanhol"
+    case EuropeanSpanish      => "espanhol europeu"
+    case LatinAmericanSpanish => "espanhol latino-americano"
+    case Swahili              => "suaíli"
+    case Swedish              => "sueco"
+    case Tamil                => "tâmil"
+    case Thai                 => "tailandês"
+    case Turkish              => "turco"
+    case Ukrainian            => "ucraniano"
+    case Urdu                 => "urdu"
+    case Vietnamese           => "vietnamita"

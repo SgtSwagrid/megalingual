@@ -13,11 +13,67 @@
 
 ## ⬇️ Installation
 
-Add the following dependency to your `build.sbt`:
+Add the core to your `build.sbt`:
 
 ```scala
 libraryDependencies += "com.alecdorrington" %% "megalingual" % "0.1.0"
 ```
+
+And, for a [Laminar](https://laminar.dev/) app, the picker:
+
+```scala
+libraryDependencies += "com.alecdorrington" %% "megalingual-laminar" % "0.1.0"
+```
+
+The core is for the JVM and, through [Scala.js](https://www.scala-js.org/), for JavaScript, and the picker for
+JavaScript alone. sbt 2 resolves `%%` to the right artefact (sbt 1 needs `%%%`).
+
+## 🗣️ Usage
+
+_Megalingual_ knows 56 languages and varieties, as a tree (British English beneath English), each
+with its flag, the direction it is written in, its plural rule, and its name in every one of them.
+
+```scala
+import com.alecdorrington.megalingual.*
+import com.alecdorrington.megalingual.Language.*
+
+French.name(in = German)  // "Französisch"
+English.title(in = French) // "Anglais", as it begins a menu's item
+Polish.plural(22)          // Plural.Few
+Language.fromTag("es-MX")  // Some(LatinAmericanSpanish)
+```
+
+An app names the languages it supports in a `Supported`, with what it has in each, such as its
+interface's text. A language outside them is read in the nearest one: a variety of it, else its
+parent's, else the default.
+
+```scala
+val interface = Supported(BritishEnglish):
+  case BritishEnglish => BritishStrings
+  case French         => FrenchStrings
+
+val reading = interface.negotiate(chosen = None, Browser.preferences)
+val strings = interface(reading)
+```
+
+The picker offers the supported languages, with their flags and names, varieties beneath the
+languages they are varieties of:
+
+```scala
+import com.alecdorrington.megalingual.laminar.*
+
+LanguagePicker(
+  languages = interface.listed,
+  chosen = language.signal,
+  choose = language.writer,
+  in = reading,
+  label = "Language",
+  ownFirst = true,
+)
+```
+
+`Written.in(language)` marks an element as written in a language (`lang` and `dir`), and
+`Intl` sorts and lists names as a language does.
 
 ## 👁️ See also
 

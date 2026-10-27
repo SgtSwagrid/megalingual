@@ -11,7 +11,29 @@ Keep it concise and actionable.
 
 ## Project overview
 
-This is a Scala library of languages with their names and flags, and a Laminar picker for choosing one.
+This is a Scala library of languages with their names and flags, and a Laminar picker for choosing one. It replaces
+the language lists and pickers Themis and Codeswitch each had, and holds whatever about a language is not one app's.
+
+- Two modules: `megalingual` (`core/`, JVM and Scala.js, depending on circe alone) and `megalingual-laminar`
+  (`laminar/`, Scala.js alone, on Laminar 18). Nothing in the core touches Laminar or the DOM, so that a JVM server
+  or a project without Laminar takes it alone. Each matrix pins its `sourceDirectory` to this build's base.
+- `Language` is one enum of every language, as a tree of varieties (`parent`), each with its code, `Direction`, flag
+  (SVG markup, in `Flag`), plural rule (`Plural.of`) and name in every language (`names/`). Inside the library,
+  matches over every language have no wildcard, so that a language added breaks the build until every fact of it is
+  written (CI compiles with `-Werror`). Apps must never match on every language: they name those they support in a
+  `Supported`, whose partial function's domain is the set and whose values are made only when read.
+- Every name is written by hand (agents, not a generator from CLDR), one `In<Language>` object per language named in,
+  as written mid-sentence there; `title` capitalises the first letter for menus. Varieties naming languages alike
+  share their parent's object, and one differing in a few overrides them and falls back to its parent's
+  (`InEuropeanPortuguese`). The `add-language` skill (`.claude/skills/`) says how to add a language.
+- `Supported` reads a language outside the set in its nearest supported one: itself, its first supported variety,
+  else its parent's nearest, else the default. `negotiate` prefers a variety the reader also prefers.
+- No backwards compatibility: codes and formats change freely, and nothing reads superseded ones. Tag matching
+  (`fromTag`, `claims`) serves what browsers send now, not old data.
+- The picker is an ARIA listbox. Its stylesheet is added to the page once, every rule in `:where()` so that any rule
+  of the app's wins, coloured through `--megalingual-*` custom properties defaulting to system colours. Everything
+  touching the browser's `Intl` falls back to a plain rule where it is missing.
+- The Laminar module's tests run in Node, with no DOM, so they test only what builds no element.
 
 ## Instructions
 
