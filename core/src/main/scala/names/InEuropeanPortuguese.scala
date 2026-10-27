@@ -10,10 +10,10 @@ import com.alecdorrington.megalingual.Language.*
 private[megalingual] object InEuropeanPortuguese:
 
   def apply(language: Language): String = language match
+    case Bengali             => "bengalês"
     case Czech               => "checo"
     case Dutch               => "neerlandês"
     case Estonian            => "estónio"
-    case Hindi               => "hindi"
     case Polish              => "polaco"
     case BrazilianPortuguese => "português do Brasil"
     case _                   => InPortuguese(language)

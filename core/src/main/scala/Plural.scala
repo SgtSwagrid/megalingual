@@ -19,8 +19,8 @@ object Plural:
     * numbers with no fraction digits. A variety follows its parent's rules
     * unless it has its own.
     */
-  private[megalingual] def of(language: Language, count: Int): Plural =
-    val n = math.abs(count.toLong)
+  private[megalingual] def of(language: Language, count: Long): Plural =
+    val n = math.abs(count)
     language match
       case English | BritishEnglish | AmericanEnglish | AustralianEnglish |
         German | GermanGerman | SwissGerman | Dutch | Danish | Swedish |

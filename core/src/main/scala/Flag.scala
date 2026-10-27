@@ -20,12 +20,6 @@ object Flag:
   private val opening =
     """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40">"""
 
-  /**
-    * A stand-in for the flag of a language whose varieties are spoken in
-    * different countries, as no one country's flag stands for it.
-    */
-  private[megalingual] case object Varieties
-
   /** Makes a flag of shapes drawn back to front in a 60 by 40 view box. */
   private[megalingual] def of(shapes: String): Flag =
     Flag(s"$opening$shapes</svg>")

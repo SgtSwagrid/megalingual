@@ -12,16 +12,17 @@ private[megalingual] object Names:
 
   /** The name of `language` in `in`, as written mid-sentence there. */
   def apply(language: Language, in: Language): String = in match
-    case Arabic                         => InArabic(language)
-    case Bengali                        => InBengali(language)
-    case Bulgarian                      => InBulgarian(language)
-    case Catalan                        => InCatalan(language)
-    case Chinese | SimplifiedChinese    => InSimplifiedChinese(language)
-    case TraditionalChinese | Cantonese => InTraditionalChinese(language)
-    case Croatian                       => InCroatian(language)
-    case Czech                          => InCzech(language)
-    case Danish                         => InDanish(language)
-    case Dutch                          => InDutch(language)
+    case Arabic                      => InArabic(language)
+    case Bengali                     => InBengali(language)
+    case Bulgarian                   => InBulgarian(language)
+    case Catalan                     => InCatalan(language)
+    case Chinese | SimplifiedChinese => InSimplifiedChinese(language)
+    case TraditionalChinese          => InTraditionalChinese(language)
+    case Cantonese                   => InCantonese(language)
+    case Croatian                    => InCroatian(language)
+    case Czech                       => InCzech(language)
+    case Danish                      => InDanish(language)
+    case Dutch                       => InDutch(language)
     case English | BritishEnglish | AmericanEnglish | AustralianEnglish =>
       InEnglish(language)
     case Estonian                            => InEstonian(language)

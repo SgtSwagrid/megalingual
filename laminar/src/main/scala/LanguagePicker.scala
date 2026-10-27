@@ -12,13 +12,19 @@ import scala.scalajs.js
   * languages they are varieties of.
   *
   * It is an ARIA listbox: arrow keys, Home and End move through it, a letter
-  * moves to the next language beginning with it, Enter or Space chooses, and
-  * Escape, Tab or a click elsewhere closes it.
+  * moves to the next language either of whose names begins with it (ignoring
+  * accents), Enter or Space chooses, and Escape, Tab or a click elsewhere
+  * closes it.
   *
-  * Its classes all begin `megalingual-`, and its stylesheet, added to the page
-  * once, has no specificity, so that any rule of the app's overrides it. Its
-  * colours are custom properties: `--megalingual-text`, `-surface`, `-border`,
-  * `-accent`, `-active`, `-radius` and `-shadow`, by default the system's.
+  * Its names are in the interface's language as it is when the picker is made,
+  * so an app that changes its language without reloading makes the picker anew.
+  *
+  * Its classes all begin `megalingual-`. Its stylesheet is added once, first in
+  * the page's head, its rules each of one class, so that they outlast element
+  * resets (Tailwind's, Bootstrap's) and any later rule of the app's overrides
+  * them. Its colours are custom properties: `--megalingual-text`, `-surface`,
+  * `-border`, `-accent`, `-active`, `-radius` and `-shadow`, by default the
+  * system's.
   */
 object LanguagePicker:
 
@@ -60,14 +66,16 @@ object LanguagePicker:
       ownFirst: Boolean = false,
       named: Boolean = true,
     )
-    : HtmlElement = picker(
-    Naming(in, ownFirst, none = ""),
-    choices(languages, Naming(in, ownFirst, none = "")),
-    chosen.map(Some(_)),
-    choose.contracollect { case Some(language) => language },
-    label,
-    named,
-  )
+    : HtmlElement =
+    val naming = Naming(in, ownFirst, none = "")
+    Picker(
+      naming,
+      choices(languages, naming),
+      chosen.map(Some(_)),
+      choose.contracollect { case Some(language) => language },
+      label,
+      named,
+    ).element
 
   /**
     * Makes a picker of one of the given languages or none, the first choice.
@@ -113,14 +121,14 @@ object LanguagePicker:
     )
     : HtmlElement =
     val naming = Naming(in, ownFirst, none)
-    picker(
+    Picker(
       naming,
       Choice(None, 0) :: choices(languages, naming),
       chosen,
       choose,
       label,
       named,
-    )
+    ).element
 
   /** One choice in the list, at its depth in the tree. */
   private[laminar] final case class Choice
@@ -147,10 +155,31 @@ object LanguagePicker:
       )))
       .filter(_ != lead(language))
 
+    /** The language a choice's leading name is written in. */
+    def leadIn(language: Option[Language]): Language = language.fold(in)(leadIn)
+
     def leadIn(language: Language): Language = if ownFirst then language else in
 
     def asideIn(language: Language): Language =
       if ownFirst then in else language
+
+    /** Whether either of a choice's names begins with what was typed. */
+    def begins
+      (
+        language: Option[Language],
+        typed: String,
+      )
+      : Boolean = (lead(language) :: language.toList.flatMap(aside)).exists(
+      name => folded(name).startsWith(folded(typed)),
+    )
+
+  /** Text in lower case without its accents (`Čeština` as `cestina`). */
+  private def folded(text: String): String = text
+    .asInstanceOf[js.Dynamic]
+    .normalize("NFD")
+    .asInstanceOf[String]
+    .filterNot(char => char >= 0x300 && char <= 0x36F)
+    .toLowerCase
 
   /**
     * The languages as a tree, each with its depth: a variety follows its
@@ -175,9 +204,11 @@ object LanguagePicker:
       )
     beneath(None, 0)
 
+  /** How many pickers there have been, to give each's elements their own ids. */
   private var pickers = 0
 
-  private def picker
+  /** One picker's state and parts. */
+  private final class Picker
     (
       naming: Naming,
       choices: List[Choice],
@@ -185,20 +216,23 @@ object LanguagePicker:
       choose: Observer[Option[Language]],
       label: String,
       named: Boolean,
-    )
-    : HtmlElement =
+    ):
+
     Stylesheet.install()
     pickers += 1
-    val id      = s"megalingual-picker-$pickers"
-    val open    = Var(false)
-    val active  = Var(0)
-    val current = Var(Option.empty[Language])
-    val toggle  = button(
+
+    private val id      = s"megalingual-picker-$pickers"
+    private val open    = Var(false)
+    private val active  = Var(0)
+    private val current = Var(Option.empty[Language])
+
+    private val toggle: HtmlElement = button(
       tpe                                         := "button",
       cls                                         := "megalingual-button",
       htmlAttr("aria-haspopup", Codec.stringAsIs) := "listbox",
       aria.expanded <-- open.signal,
-      aria.controls := s"$id-list",
+      // Named only while the list it names is there; a null removes it.
+      aria.controls <-- open.signal.map(if _ then s"$id-list" else null),
       span(cls := "megalingual-hidden", label),
       child <-- chosen.map(language =>
         flag(
@@ -208,7 +242,12 @@ object LanguagePicker:
       ),
       Option.when(named)(span(
         cls := "megalingual-name",
-        child.text <-- chosen.map(naming.lead),
+        child <-- chosen.map(language =>
+          span(
+            Written.in(naming.leadIn(language)),
+            naming.lead(language),
+          ),
+        ),
       )),
       span(
         cls         := "megalingual-caret",
@@ -216,69 +255,16 @@ object LanguagePicker:
         "▾",
       ),
       chosen --> current.writer,
+      onClick --> (_ => if open.now() then close(refocus = false) else show()),
+      onKeyDown
+        .filter(event => opening(event.key) && !open.now())
+        .preventDefault --> (_ => show()),
     )
-    def index: Int   = choices.indexWhere(_.language == current.now()).max(0)
-    def show(): Unit =
-      active.set(index)
-      open.set(true)
-    def close(refocus: Boolean): Unit =
-      open.set(false)
-      if refocus then toggle.ref.focus()
-    def pick(language: Option[Language]): Unit =
-      close(refocus = true)
-      choose.onNext(language)
-    def list: HtmlElement = ul(
-      idAttr     := s"$id-list",
-      cls        := "megalingual-list",
-      role       := "listbox",
-      tabIndex   := -1,
-      aria.label := label,
-      aria.activeDescendant <-- active.signal.map(index => s"$id-$index"),
-      onMountCallback(context => context.thisNode.ref.focus()),
-      active.signal --> (index => reveal(s"$id-$index")),
-      onKeyDown -->
-        (event =>
-          keyed(
-            event,
-            choices,
-            naming,
-            active,
-            pick,
-            close,
-          )
-        ),
-      eventProp[dom.FocusEvent]("focusout") -->
-        (event =>
-          Option(event.relatedTarget)
-            .collect { case node: dom.Node => node }
-            .filterNot(toggle.ref.parentNode.contains)
-            .foreach(_ => close(refocus = false))
-        ),
-      choices
-        .zipWithIndex
-        .map((choice, index) =>
-          option(
-            id,
-            choice,
-            index,
-            naming,
-            active,
-            chosen,
-            pick,
-          ),
-        ),
-    )
-    div(
+
+    /** The picker. */
+    val element: HtmlElement = div(
       cls := "megalingual-picker",
-      toggle.amend(
-        onClick -->
-          (_ => if open.now() then close(refocus = false) else show()),
-        onKeyDown
-          .filter(event =>
-            Set("ArrowDown", "ArrowUp", "Enter", " ")(event.key) && !open.now(),
-          )
-          .preventDefault --> (_ => show()),
-      ),
+      toggle,
       inContext(root =>
         documentEvents(_.onMouseDown).filter(event =>
           !root.ref.contains(event.target.asInstanceOf[dom.Node]),
@@ -287,103 +273,106 @@ object LanguagePicker:
       child.maybe <-- open.signal.map(Option.when(_)(list)),
     )
 
-  private def option
-    (
-      id: String,
-      choice: Choice,
-      index: Int,
-      naming: Naming,
-      active: Var[Int],
-      chosen: Signal[Option[Language]],
-      pick: Option[Language] => Unit,
-    )
-    : HtmlElement = li(
-    idAttr := s"$id-$index",
-    role   := "option",
-    cls    := "megalingual-option",
-    cls("megalingual-option-active") <-- active.signal.map(_ == index),
-    aria.selected <-- chosen.map(_ == choice.language),
-    styleProp[String]("--megalingual-depth") := choice.depth.toString,
-    onMouseMove --> (_ => active.set(index)),
-    onClick --> (_ => pick(choice.language)),
-    flag(choice.language, alt = ""),
-    choice.language match
-      case Some(language) => names(language, naming)
-      case None           => Seq(span(cls := "megalingual-lead", naming.none)),
-  )
+    private def opening(key: String): Boolean =
+      Set("ArrowDown", "ArrowUp", "Enter", " ")(key)
 
-  private def names(language: Language, naming: Naming): Seq[HtmlElement] =
-    named(
+    private def show(): Unit =
+      active.set(choices.indexWhere(_.language == current.now()).max(0))
+      open.set(true)
+
+    private def close(refocus: Boolean): Unit =
+      open.set(false)
+      if refocus then toggle.ref.focus()
+
+    private def pick(language: Option[Language]): Unit =
+      close(refocus = true)
+      choose.onNext(language)
+
+    private def list: HtmlElement = ul(
+      idAttr     := s"$id-list",
+      cls        := "megalingual-list",
+      role       := "listbox",
+      tabIndex   := -1,
+      aria.label := label,
+      aria.activeDescendant <-- active.signal.map(index => s"$id-$index"),
+      onMountCallback(context => context.thisNode.ref.focus()),
+      active.signal --> (index => reveal(s"$id-$index")),
+      onKeyDown --> (event => keyed(event)),
+      eventProp[dom.FocusEvent]("focusout") --> (event => left(event)),
+      choices.zipWithIndex.map(option),
+    )
+
+    /** Closes the list once focus leaves the picker, as by Tab. */
+    private def left(event: dom.FocusEvent): Unit = Option(event.relatedTarget)
+      .collect { case node: dom.Node => node }
+      .filterNot(element.ref.contains)
+      .foreach(_ => close(refocus = false))
+
+    private def option(choice: Choice, index: Int): HtmlElement = li(
+      idAttr := s"$id-$index",
+      role   := "option",
+      cls    := "megalingual-option",
+      cls("megalingual-option-active") <-- active.signal.map(_ == index),
+      aria.selected <-- chosen.map(_ == choice.language),
+      styleProp[String]("--megalingual-depth") := choice.depth.toString,
+      onMouseMove --> (_ => active.set(index)),
+      onClick --> (_ => pick(choice.language)),
+      flag(choice.language, alt = ""),
+      choice.language match
+        case Some(language) => names(language)
+        case None           => Seq(span(cls := "megalingual-lead", naming.none)),
+    )
+
+    private def names(language: Language): Seq[HtmlElement] = written(
       "megalingual-lead",
       naming.lead(language),
       naming.leadIn(language),
     ) ::
       naming
         .aside(language)
-        .map(named(
+        .map(written(
           "megalingual-aside",
           _,
           naming.asideIn(language),
         ))
         .toList
 
-  /**
-    * A name in its own language, inside a span keeping the row's direction, so
-    * that a name written right to left still lines up with the others.
-    */
-  private def named(kind: String, name: String, in: Language): HtmlElement =
-    span(cls := kind, span(Written.in(in), name))
-
-  /** Moves through the list, chooses or closes, by the key pressed. */
-  private def keyed
-    (
-      event: dom.KeyboardEvent,
-      choices: List[Choice],
-      naming: Naming,
-      active: Var[Int],
-      pick: Option[Language] => Unit,
-      close: Boolean => Unit,
-    )
-    : Unit =
-    val last                   = choices.size - 1
-    def move(index: Int): Unit =
-      event.preventDefault()
-      active.set(index.max(0).min(last))
-    event.key match
-      case "ArrowDown"   => move(active.now() + 1)
-      case "ArrowUp"     => move(active.now() - 1)
-      case "Home"        => move(0)
-      case "End"         => move(last)
+    /** Moves through the list, chooses or closes, by the key pressed. */
+    private def keyed(event: dom.KeyboardEvent): Unit = event.key match
+      case "ArrowDown"   => move(event, active.now() + 1)
+      case "ArrowUp"     => move(event, active.now() - 1)
+      case "Home"        => move(event, 0)
+      case "End"         => move(event, choices.size - 1)
       case "Enter" | " " =>
         event.preventDefault()
-        pick(choices(active.now()).language)
+        choices.lift(active.now()).foreach(choice => pick(choice.language))
       case "Escape" =>
+        // Closes only the list, not a dialog it is in.
         event.preventDefault()
-        close(true)
-      case "Tab"               => close(false)
-      case key if typed(event) =>
-        next(choices, naming, active.now(), key).foreach(move)
-      case _ => ()
+        event.stopPropagation()
+        close(refocus = true)
+      case "Tab"               => close(refocus = false)
+      case key if typed(event) => next(key).foreach(move(event, _))
+      case _                   => ()
+
+    private def move(event: dom.KeyboardEvent, index: Int): Unit =
+      event.preventDefault()
+      active.set(index.min(choices.size - 1).max(0))
+
+    /** The next choice after the active one, wrapping round, begun by `key`. */
+    private def next(key: String): Option[Int] = (1 to choices.size)
+      .map(step => (active.now() + step) % choices.size)
+      .find(index => naming.begins(choices(index).language, key))
 
   private def typed(event: dom.KeyboardEvent): Boolean =
     event.key.length == 1 && !event.ctrlKey && !event.metaKey && !event.altKey
 
-  /** The next choice after `from`, wrapping round, whose name begins `key`. */
-  private def next
-    (
-      choices: List[Choice],
-      naming: Naming,
-      from: Int,
-      key: String,
-    )
-    : Option[Int] = (1 to choices.size)
-    .map(step => (from + step) % choices.size)
-    .find(index =>
-      naming
-        .lead(choices(index).language)
-        .toLowerCase
-        .startsWith(key.toLowerCase),
-    )
+  /**
+    * A name in its own language, inside a span keeping the row's direction, so
+    * that a name written right to left still lines up with the others.
+    */
+  private def written(kind: String, name: String, in: Language): HtmlElement =
+    span(cls := kind, span(Written.in(in), name))
 
   private def reveal(id: String): Unit = Option(dom.document.getElementById(id))
     .foreach(

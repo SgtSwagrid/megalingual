@@ -35,7 +35,7 @@ private[megalingual] object InPortuguese:
     case SwissGerman          => "alemão padrão suíço"
     case Greek                => "grego"
     case Hebrew               => "hebraico"
-    case Hindi                => "híndi"
+    case Hindi                => "hindi"
     case Hungarian            => "húngaro"
     case Indonesian           => "indonésio"
     case Italian              => "italiano"

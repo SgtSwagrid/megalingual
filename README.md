@@ -44,31 +44,50 @@ Language.fromTag("es-MX")  // Some(LatinAmericanSpanish)
 ```
 
 An app names the languages it supports in a `Supported`, with what it has in each, such as its
-interface's text. A language outside them is read in the nearest one: a variety of it, else its
-parent's, else the default.
+interface's text. A language outside them is read in the nearest one: a variety of it, else one in
+the same script, else its parent's nearest, else the default. A reader's language is negotiated from
+their choice and their browser's preferences, and the picker offers the supported languages, with
+their flags and names, varieties beneath the languages they are varieties of:
 
 ```scala
+import com.alecdorrington.megalingual.*
+import com.alecdorrington.megalingual.Language.*
+import com.alecdorrington.megalingual.laminar.*
+import com.raquo.laminar.api.L.*
+
+trait Strings:
+  def languageLabel: String
+  def greeting: String
+
+object BritishStrings extends Strings:
+  val languageLabel = "Language"
+  val greeting      = "Hello"
+
+object FrenchStrings extends Strings:
+  val languageLabel = "Langue"
+  val greeting      = "Bonjour"
+
 val interface = Supported(BritishEnglish):
   case BritishEnglish => BritishStrings
   case French         => FrenchStrings
 
-val reading = interface.negotiate(chosen = None, Browser.preferences)
-val strings = interface(reading)
-```
+val reading = Var(interface.negotiate(chosen = None, Browser.preferences))
 
-The picker offers the supported languages, with their flags and names, varieties beneath the
-languages they are varieties of:
-
-```scala
-import com.alecdorrington.megalingual.laminar.*
-
-LanguagePicker(
-  languages = interface.listed,
-  chosen = language.signal,
-  choose = language.writer,
-  in = reading,
-  label = "Language",
-  ownFirst = true,
+val app = div(
+  child <-- reading.signal.map: language =>
+    div(
+      Written.in(language),
+      LanguagePicker(
+        languages = interface.listed,
+        chosen = reading.signal,
+        choose = reading.writer.contramap: chosen =>
+          interface.negotiate(Some(chosen), Browser.preferences),
+        in = language,
+        label = interface(language).languageLabel,
+        ownFirst = true,
+      ),
+      p(interface(language).greeting),
+    ),
 )
 ```
 

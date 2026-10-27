@@ -4,34 +4,40 @@ package laminar
 import org.scalajs.dom
 
 /**
-  * The picker's stylesheet, added to the page's head once. Every rule is in
-  * `:where()`, so has no specificity, and any rule of the app's overrides it.
+  * The picker's stylesheet, added once, first in the page's head. Each rule is
+  * of one class, which outlasts element resets (`button`, `ul`), and comes
+  * before any rule of the app's, which overrides it.
   */
 private object Stylesheet:
 
   private val id = "megalingual-styles"
 
   /** Adds the stylesheet to the page, unless it is there already. */
-  def install(): Unit = if dom.document.getElementById(id) == null then
-    val style = dom.document.createElement("style")
-    style.id = id
-    style.textContent = css
-    dom.document.head.prepend(style)
+  def install(): Unit = Option(dom.document.head)
+    .filter(_ => dom.document.getElementById(id) == null)
+    .foreach: head =>
+      val style = dom.document.createElement("style")
+      style.id = id
+      style.textContent = css
+      head.prepend(style)
 
   private val border =
     "var(--megalingual-border, color-mix(in srgb, CanvasText 22%, transparent))"
 
+  private val accent = "var(--megalingual-accent, LinkText)"
+
   private val css = s"""
-    |:where(.megalingual-picker) {
+    |.megalingual-picker {
     |  position: relative;
     |  display: inline-block;
     |  max-width: 100%;
     |}
-    |:where(.megalingual-button) {
+    |.megalingual-button {
     |  display: inline-flex;
     |  align-items: center;
     |  gap: 0.5em;
     |  max-width: 100%;
+    |  margin: 0;
     |  padding: 0.375em 0.625em;
     |  font: inherit;
     |  color: var(--megalingual-text, CanvasText);
@@ -40,16 +46,16 @@ private object Stylesheet:
     |  border-radius: var(--megalingual-radius, 6px);
     |  cursor: pointer;
     |}
-    |:where(.megalingual-name) {
+    |.megalingual-name {
     |  min-width: 0;
     |  overflow: hidden;
     |  text-overflow: ellipsis;
     |  white-space: nowrap;
     |}
-    |:where(.megalingual-caret) {
+    |.megalingual-caret {
     |  opacity: 0.7;
     |}
-    |:where(.megalingual-hidden) {
+    |.megalingual-hidden {
     |  position: absolute;
     |  width: 1px;
     |  height: 1px;
@@ -57,7 +63,7 @@ private object Stylesheet:
     |  clip-path: inset(50%);
     |  white-space: nowrap;
     |}
-    |:where(.megalingual-list) {
+    |.megalingual-list {
     |  position: absolute;
     |  top: calc(100% + 4px);
     |  inset-inline-start: 0;
@@ -78,41 +84,44 @@ private object Stylesheet:
     |  border-radius: var(--megalingual-radius, 6px);
     |  box-shadow: var(--megalingual-shadow, 0 8px 24px rgb(0 0 0 / 0.16));
     |}
-    |:where(.megalingual-list):focus {
+    |.megalingual-list:focus {
     |  outline: none;
     |}
-    |:where(.megalingual-option) {
+    |.megalingual-option {
     |  display: flex;
     |  align-items: center;
     |  gap: 0.5em;
+    |  margin: 0;
     |  padding: 0.5em 0.625em;
     |  padding-inline-start: calc(0.625em + var(--megalingual-depth, 0) * 1.25em);
     |  font-size: 0.875em;
     |  border-radius: calc(var(--megalingual-radius, 6px) - 2px);
     |  cursor: pointer;
     |}
-    |:where(.megalingual-option-active) {
-    |  background: var(--megalingual-active, color-mix(in srgb, CanvasText 8%, transparent));
-    |}
-    |:where(.megalingual-option[aria-selected="true"]) {
+    |.megalingual-option[aria-selected="true"] {
     |  font-weight: 600;
-    |  color: var(--megalingual-accent, LinkText);
+    |  color: $accent;
     |}
-    |:where(.megalingual-lead) {
+    |.megalingual-option-active {
+    |  background: var(--megalingual-active, color-mix(in srgb, CanvasText 8%, transparent));
+    |  outline: 2px solid $accent;
+    |  outline-offset: -2px;
+    |}
+    |.megalingual-lead {
     |  flex: 1 1 auto;
     |  min-width: 0;
     |  overflow: hidden;
     |  text-overflow: ellipsis;
     |  white-space: nowrap;
     |}
-    |:where(.megalingual-aside) {
+    |.megalingual-aside {
     |  flex: none;
     |  font-size: 0.85em;
     |  font-weight: 400;
     |  white-space: nowrap;
     |  opacity: 0.7;
     |}
-    |:where(.megalingual-flag) {
+    |.megalingual-flag {
     |  display: block;
     |  flex: none;
     |  width: 21px;
@@ -120,7 +129,12 @@ private object Stylesheet:
     |  border-radius: 2px;
     |  box-shadow: 0 0 0 1px rgb(16 24 40 / 0.15);
     |}
-    |:where(.megalingual-flag-none) {
+    |.megalingual-flag-none {
     |  box-shadow: none;
+    |}
+    |@media (forced-colors: active) {
+    |  .megalingual-option-active {
+    |    outline-color: Highlight;
+    |  }
     |}
     |""".stripMargin

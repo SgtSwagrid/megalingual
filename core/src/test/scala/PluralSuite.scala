@@ -7,7 +7,7 @@ import munit.FunSuite
 class PluralSuite extends FunSuite:
 
   private def categories(language: Language, counts: Int*): List[Plural] =
-    counts.map(language.plural).toList
+    counts.map(language.plural(_)).toList
 
   test("Every language has a category for every count"):
     for
@@ -62,16 +62,18 @@ class PluralSuite extends FunSuite:
       )
 
   test("Croatian and Serbian have one, few and other"):
-    assertEquals(
-      categories(Croatian, 1, 21, 22, 25, 11),
-      List(One, One, Few, Other, Other),
-    )
+    for language <- List(Croatian, Serbian) do
+      assertEquals(
+        categories(language, 1, 21, 22, 25, 11),
+        List(One, One, Few, Other, Other),
+      )
 
   test("Czech and Slovak have one, few and other"):
-    assertEquals(
-      categories(Slovak, 1, 2, 4, 5, 22),
-      List(One, Few, Few, Other, Other),
-    )
+    for language <- List(Czech, Slovak) do
+      assertEquals(
+        categories(language, 1, 2, 4, 5, 22),
+        List(One, Few, Few, Other, Other),
+      )
 
   test("Slovenian counts by the last two digits"):
     assertEquals(
@@ -95,6 +97,10 @@ class PluralSuite extends FunSuite:
         Few,
       ),
     )
+
+  test("Counts beyond an Int are categorised alike"):
+    assertEquals(Russian.plural(10_000_000_021L), One)
+    assertEquals(French.plural(3_000_000_000L), Many)
 
   test("Hebrew has a dual"):
     assertEquals(

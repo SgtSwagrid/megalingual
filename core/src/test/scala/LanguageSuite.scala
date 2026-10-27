@@ -2,7 +2,7 @@ package com.alecdorrington.megalingual
 
 import com.alecdorrington.megalingual.Direction.{LeftToRight, RightToLeft}
 import com.alecdorrington.megalingual.Language.*
-import io.circe.{Decoder, Encoder, Json}
+import io.circe.{Decoder, Encoder, Json, KeyDecoder, KeyEncoder}
 import munit.FunSuite
 
 class LanguageSuite extends FunSuite:
@@ -130,3 +130,25 @@ class LanguageSuite extends FunSuite:
       Right(SwissGerman),
     )
     assert(Decoder[Language].decodeJson(Json.fromString("no")).isLeft)
+
+  test("A language keys a map by its code"):
+    assertEquals(
+      KeyEncoder[Language].apply(SwissGerman),
+      "de-CH",
+    )
+    assertEquals(
+      KeyDecoder[Language].apply("de-CH"),
+      Some(SwissGerman),
+    )
+    assertEquals(KeyDecoder[Language].apply("no"), None)
+
+  test("Hong Kong names a few languages unlike Taiwan"):
+    assertEquals(
+      Italian.name(TraditionalChinese),
+      "義大利文",
+    )
+    assertEquals(Italian.name(Cantonese), "意大利文")
+    assertEquals(
+      Japanese.name(Cantonese),
+      Japanese.name(TraditionalChinese),
+    )

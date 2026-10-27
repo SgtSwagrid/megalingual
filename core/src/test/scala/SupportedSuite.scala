@@ -23,10 +23,16 @@ class SupportedSuite extends FunSuite:
     )
     assertEquals(supported.default, BritishEnglish)
 
-  test("Listed languages add every language a supported one is a variety of"):
+  test(
+    "Listed languages add every language two supported ones are varieties of",
+  ):
     assertEquals(
       supported.listed.toSet,
-      supported.languages.toSet ++ Set(English, German),
+      supported.languages.toSet + English,
+    )
+    assertEquals(
+      Supported.only(BritishEnglish, French).listed,
+      List(BritishEnglish, French),
     )
 
   test("A language is read in itself, a variety, or its parent's nearest"):
@@ -46,6 +52,59 @@ class SupportedSuite extends FunSuite:
     assertEquals(supported.nearest(Japanese), None)
     assertEquals(
       supported.resolve(Japanese),
+      BritishEnglish,
+    )
+
+  test("A language unsupported is read in one in the same script first"):
+    val chinese = Supported.only(SimplifiedChinese, TraditionalChinese)
+    assertEquals(
+      chinese.resolve(Cantonese),
+      TraditionalChinese,
+    )
+    assertEquals(
+      chinese.negotiate(None, fromTags(List("zh-Hant-HK"))),
+      TraditionalChinese,
+    )
+    assertEquals(
+      Supported.only(SimplifiedChinese, Cantonese).resolve(TraditionalChinese),
+      Cantonese,
+    )
+    assertEquals(
+      Supported.only(SimplifiedChinese).resolve(Cantonese),
+      SimplifiedChinese,
+    )
+
+  test("A language the reader names comes before another's parent"):
+    assertEquals(
+      Supported
+        .only(SimplifiedChinese, TraditionalChinese)
+        .negotiate(
+          None,
+          List(Cantonese, TraditionalChinese),
+        ),
+      TraditionalChinese,
+    )
+    assertEquals(
+      Supported
+        .only(BritishEnglish, AmericanEnglish)
+        .negotiate(
+          None,
+          List(AustralianEnglish, AmericanEnglish),
+        ),
+      AmericanEnglish,
+    )
+    assertEquals(
+      Supported
+        .only(BritishEnglish, French)
+        .negotiate(None, List(AustralianEnglish, French)),
+      French,
+    )
+    assertEquals(
+      supported.negotiate(None, List(SwissGerman)),
+      GermanGerman,
+    )
+    assertEquals(
+      supported.negotiate(Some(AustralianEnglish), List(French)),
       BritishEnglish,
     )
 

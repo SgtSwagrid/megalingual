@@ -3,14 +3,17 @@ package names
 
 import com.alecdorrington.megalingual.Language.*
 
-/** Every language's name in Traditional Chinese. */
+/**
+  * Every language's name in traditional Chinese as written in Taiwan, which
+  * Cantonese overrides where Hong Kong writes it differently.
+  */
 private[megalingual] object InTraditionalChinese:
 
   def apply(language: Language): String = language match
     case Arabic               => "阿拉伯文"
     case Bengali              => "孟加拉文"
     case Bulgarian            => "保加利亞文"
-    case Catalan              => "加泰隆尼亞文"
+    case Catalan              => "加泰蘭文"
     case Chinese              => "中文"
     case SimplifiedChinese    => "簡體中文"
     case TraditionalChinese   => "繁體中文"
@@ -57,9 +60,9 @@ private[megalingual] object InTraditionalChinese:
     case LatinAmericanSpanish => "拉丁美洲西班牙文"
     case Swahili              => "史瓦希里文"
     case Swedish              => "瑞典文"
-    case Tamil                => "泰米爾文"
+    case Tamil                => "坦米爾文"
     case Thai                 => "泰文"
     case Turkish              => "土耳其文"
     case Ukrainian            => "烏克蘭文"
-    case Urdu                 => "烏爾都文"
+    case Urdu                 => "烏都文"
     case Vietnamese           => "越南文"

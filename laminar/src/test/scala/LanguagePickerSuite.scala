@@ -55,6 +55,15 @@ class LanguagePickerSuite extends FunSuite:
     assertEquals(inEnglish.aside(English), None)
     assertEquals(inEnglish.lead(None), "None")
 
+  test("A letter typed finds either name, ignoring accents"):
+    val ownFirst = inEnglish.copy(ownFirst = true)
+    assert(ownFirst.begins(Some(Czech), "c"))
+    assert(ownFirst.begins(Some(Czech), "C"))
+    assert(inEnglish.begins(Some(Czech), "c"))
+    assert(inEnglish.begins(Some(German), "d"))
+    assert(!inEnglish.begins(Some(German), "x"))
+    assert(inEnglish.begins(None, "n"))
+
   test("Lists are joined as the language lists things"):
     assertEquals(
       Intl.listed(List("A", "B", "C"), German),
