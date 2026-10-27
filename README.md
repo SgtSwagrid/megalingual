@@ -74,25 +74,23 @@ val interface = Supported(BritishEnglish):
 val reading = Var(interface.negotiate(chosen = None, Browser.preferences))
 
 val app = div(
-  child <-- reading.signal.map: language =>
-    div(
-      Written.in(language),
-      LanguagePicker(
-        languages = interface.listed,
-        chosen = reading.signal,
-        choose = reading.writer.contramap: chosen =>
-          interface.negotiate(Some(chosen), Browser.preferences),
-        in = language,
-        label = interface(language).languageLabel,
-        ownFirst = true,
-      ),
-      p(interface(language).greeting),
-    ),
+  Written.in(reading.signal),
+  LanguagePicker(
+    languages = interface.listed,
+    chosen = reading.signal,
+    choose = reading.writer.contramap: chosen =>
+      interface.negotiate(Some(chosen), Browser.preferences),
+    in = reading.signal,
+    label = reading.signal.map(interface(_).languageLabel),
+    ownFirst = true,
+  ),
+  p(child.text <-- reading.signal.map(interface(_).greeting)),
 )
 ```
 
 `Written.in(language)` marks an element as written in a language (`lang` and `dir`), and
-`Intl` sorts and lists names as a language does.
+`Intl` sorts and lists names as a language does. The picker's stylesheet goes in the page's head,
+so a picker inside a shadow root is unstyled.
 
 ## 👁️ See also
 

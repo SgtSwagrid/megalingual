@@ -108,6 +108,32 @@ class SupportedSuite extends FunSuite:
       BritishEnglish,
     )
 
+  test("A language the reader names comes before one in the same script"):
+    assertEquals(
+      Supported
+        .only(SimplifiedChinese, Cantonese)
+        .negotiate(
+          None,
+          List(TraditionalChinese, SimplifiedChinese),
+        ),
+      SimplifiedChinese,
+    )
+    assertEquals(
+      Supported
+        .only(SimplifiedChinese, TraditionalChinese)
+        .negotiate(
+          None,
+          List(Cantonese, SimplifiedChinese),
+        ),
+      SimplifiedChinese,
+    )
+    assertEquals(
+      Supported
+        .only(SimplifiedChinese, TraditionalChinese)
+        .negotiate(None, List(Cantonese, English)),
+      TraditionalChinese,
+    )
+
   test("What the app has is found as the language is read"):
     assertEquals(supported(AmericanEnglish), "en-US")
     assertEquals(supported(SwissGerman), "de-DE")

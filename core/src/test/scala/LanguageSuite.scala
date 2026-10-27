@@ -77,6 +77,12 @@ class LanguageSuite extends FunSuite:
       Some(TraditionalChinese),
     )
     assertEquals(fromTag("zh-Hans-SG"), Some(Chinese))
+    assertEquals(fromTag("zh-Hans-HK"), Some(Chinese))
+    assertEquals(fromTag("zh-MO"), Some(Cantonese))
+    assertEquals(
+      fromTag("zh-Hant-TW"),
+      Some(TraditionalChinese),
+    )
     assertEquals(fromTag("no"), Some(Norwegian))
     assertEquals(fromTag("fil-PH"), Some(Filipino))
     assertEquals(fromTag(" fr "), Some(French))

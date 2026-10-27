@@ -26,17 +26,20 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   when read.
 - Every name is written by hand (agents, not a generator from CLDR), one `In<Language>` object per language named in,
   as written mid-sentence there; `title` capitalises the first letter for menus. Varieties naming languages alike
-  share their parent's object, and one differing in a few overrides them and falls back to its parent's
-  (`InEuropeanPortuguese`). The `add-language` skill (`.claude/skills/`) says how to add a language.
+  share one object, and one differing in a few overrides them and falls back to the object it overrides
+  (`InEuropeanPortuguese` to `InPortuguese`, `InCantonese`, Hong Kong's, to `InTraditionalChinese`, Taiwan's). The `add-language` skill (`.claude/skills/`) says how to add a language.
 - `Supported` reads a language outside the set in its nearest supported one: itself, its first supported variety,
-  else one in the same script (`akin`: Cantonese and traditional Chinese), else its parent's nearest, else the
-  default. `negotiate` takes the reader's choice first, then each preference that is supported (itself, a variety,
-  or the same script) before falling back to any preference's parent, so a variety the reader names is never passed
-  over for a sibling; a broader language is read in a variety they also prefer. `listed` adds a broader language only
+  else one in the same script (`akin`, which goes both ways, Cantonese and traditional Chinese, and serves only
+  `Supported`), else its parent's nearest, else the default. `negotiate` takes the reader's choice first, then each
+  preference that is supported itself or by a variety, and only then reads any in another (`nearest`), so a
+  language the reader names is never passed over for a sibling or one in the same script; a broader language is read
+  in a variety they also prefer. `listed` adds a broader language only
   where two of its varieties are supported.
 - No backwards compatibility: codes and formats change freely, and nothing reads superseded ones. Tag matching
   (`fromTag`, `claims`) serves what browsers send now, not old data.
-- The picker is an ARIA listbox. Its stylesheet is added once, first in the page's head, each rule of one class: never
+- The picker is an ARIA listbox. Its interface language, label and name for no language are signals, so that it
+  stays mounted (and keeps the focus) when the interface changes language; it never sits in a `child <--` that the
+  choice rebuilds. Its stylesheet is added on mounting, once, first in the page's head, each rule of one class: never
   `:where()`, whose zero specificity loses to element resets (Tailwind's `button`, Bootstrap's `ul`), while any later
   class rule of the app's still wins. Colours are `--megalingual-*` custom properties defaulting to system colours,
   and the active option keeps an outline (a background tint alone is too faint, and lost in forced colours). Every

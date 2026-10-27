@@ -24,7 +24,8 @@ against CLDR where that helps. Then:
    - If browsers name it by tags that would otherwise reach another language, or none (`es-MX`
      for `es-419`, `no` for `nb`), list them in `Language.claims`. If its readers read another
      language outside its tree best when it is missing, as Cantonese's read traditional Chinese,
-     list that in `Language.akin`.
+     list each in the other's `Language.akin` (the link goes both ways). It changes only which
+     supported language `Supported` falls back to.
 2. **Its plural rule.** Add it to the match in `Plural.of` (`core/src/main/scala/Plural.scala`):
    CLDR's cardinal rule for whole numbers. A variety goes with its parent unless its rule differs.
 3. **Its name in every language.** Add a case to every `In*.scala` in
@@ -35,8 +36,8 @@ against CLDR where that helps. Then:
 4. **Every language's name in it.** Unless a variety names languages exactly as its parent's
    file does (then add it to that file's case in `Names.apply`), write `In<Language>.scala`,
    copying `InEnglish.scala`'s shape: every case, in `Language`'s order, no wildcard. A variety
-   that names only a few differently overrides those and ends with `case _ => In<Parent>(language)`,
-   as `InEuropeanPortuguese.scala` does. Add its case to `Names.apply`.
+   that names only a few differently overrides those and ends with `case _ => In<Other>(language)`,
+   falling back to the object it overrides, as `InEuropeanPortuguese.scala` does to `InPortuguese`. Add its case to `Names.apply`.
 5. **Check.** Run `sbt "megalingual/test; megalingualJS/test"` with `-Werror`
    (`sbt 'set ThisBuild / scalacOptions += "-Werror"; Test/compile'`, as CI does): a match
    missing the new case fails to compile. The tests check that every language is named in every

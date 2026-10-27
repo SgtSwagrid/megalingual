@@ -59,12 +59,13 @@ final class Supported[+A] private (
     * @return
     *   A supported language, if the language's tree has one.
     */
-  def nearest(language: Language): Option[Language] =
-    beside(language).orElse(language.parent.flatMap(nearest))
+  def nearest(language: Language): Option[Language] = beneath(language)
+    .orElse(language.akin.iterator.flatMap(beneath).nextOption())
+    .orElse(language.parent.flatMap(nearest))
 
-  /** Itself, else its first supported variety, else one in the same script. */
-  private def beside(language: Language): Option[Language] =
-    (language :: language.descendants ::: language.akin).find(supports)
+  /** Itself, else its first supported variety. */
+  private def beneath(language: Language): Option[Language] =
+    (language :: language.descendants).find(supports)
 
   /**
     * Finds the supported language a language is read in: its [[nearest]], else
@@ -93,10 +94,11 @@ final class Supported[+A] private (
   /**
     * Chooses the language a reader reads in. Their choice comes first, read in
     * its [[nearest]] supported language. Then each of their preferences in
-    * turn, if it or a variety of it is supported, before any is read in its
-    * parent's. A broader language is read in a variety the reader also prefers
-    * (English is American English to a reader preferring `en-US`). Else the
-    * default.
+    * turn, if it or a variety of it is supported, before any is read in another
+    * of the same script or its parent's, so that a language the reader names is
+    * never passed over. A broader language is read in a variety the reader also
+    * prefers (English is American English to a reader preferring `en-US`). Else
+    * the default.
     *
     * @param chosen
     *   The language the reader chose, if any.
@@ -121,7 +123,7 @@ final class Supported[+A] private (
 
   /**
     * The first preference within a language that is supported, else the
-    * language `beside` it, without climbing to its parent.
+    * language itself or its first supported variety, never another.
     */
   private def close
     (
@@ -130,7 +132,7 @@ final class Supported[+A] private (
     )
     : Option[Language] = preferences
     .find(preference => preference.within(language) && supports(preference))
-    .orElse(beside(language))
+    .orElse(beneath(language))
 
 object Supported:
 
