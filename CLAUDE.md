@@ -11,7 +11,41 @@ Keep it concise and actionable.
 
 ## Project overview
 
-This is a Scala library of languages with their names and flags, and a Laminar picker for choosing one.
+This is a Scala library of languages with their names and flags, and a Laminar picker for choosing one. It replaces
+the language lists and pickers Themis and Codeswitch each had, and holds whatever about a language is not one app's.
+
+- Two modules: `megalingual` (`core/`, JVM and Scala.js, depending on circe alone) and `megalingual-laminar`
+  (`laminar/`, Scala.js alone, on Laminar 18). Nothing in the core touches Laminar or the DOM, so that a JVM server
+  or a project without Laminar takes it alone. Each matrix pins its `sourceDirectory` to this build's base.
+- `Language` is one enum of every language, as a tree of varieties (`parent`), each with its code and `Direction`
+  in its case, and its flag (`Flags.of`, SVG markup), plural rule (`Plural.of`) and name in every language (`names/`)
+  each in a match of its own, so that code using none of them links none, and a flag is drawn only when shown. Those
+  matches have no wildcard, so that a language added breaks the build until every fact of it is written (CI compiles
+  with `-Werror`); `claims` and `akin` list only the exceptions. Apps must never match on every language: they name
+  those they support in a `Supported`, whose partial function's domain is the set and whose values are made only
+  when read.
+- Every name is written by hand (agents, not a generator from CLDR), one `In<Language>` object per language named in,
+  as written mid-sentence there; `title` capitalises the first letter for menus. Varieties naming languages alike
+  share one object, and one differing in a few overrides them and falls back to the object it overrides
+  (`InEuropeanPortuguese` to `InPortuguese`, `InCantonese`, Hong Kong's, to `InTraditionalChinese`, Taiwan's). The `add-language` skill (`.claude/skills/`) says how to add a language.
+- `Supported` reads a language outside the set in its nearest supported one: itself, its first supported variety,
+  else one in the same script (`akin`, which goes both ways, Cantonese and traditional Chinese, and serves only
+  `Supported`), else its parent's nearest, else the default. `negotiate` takes the reader's choice first, then each
+  preference that is supported itself or by a variety, and only then reads any in another (`nearest`), so a
+  language the reader names is never passed over for a sibling or one in the same script; a broader language is read
+  in a variety they also prefer. `listed` adds a broader language only
+  where two of its varieties are supported.
+- No backwards compatibility: codes and formats change freely, and nothing reads superseded ones. Tag matching
+  (`fromTag`, `claims`) serves what browsers send now, not old data.
+- The picker is an ARIA listbox. Its interface language, label and name for no language are signals, so that it
+  stays mounted (and keeps the focus) when the interface changes language; it never sits in a `child <--` that the
+  choice rebuilds. Its stylesheet is added on mounting, once, first in the page's head, each rule of one class: never
+  `:where()`, whose zero specificity loses to element resets (Tailwind's `button`, Bootstrap's `ul`), while any later
+  class rule of the app's still wins. Colours are `--megalingual-*` custom properties defaulting to system colours,
+  and the active option keeps an outline (a background tint alone is too faint, and lost in forced colours). Every
+  name shown, the button's too, carries its language's `lang` and `dir`. Everything touching the browser's `Intl`
+  falls back to a plain rule where it is missing.
+- The Laminar module's tests run in Node, with no DOM, so they test only what builds no element.
 
 ## Instructions
 

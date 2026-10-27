@@ -13,11 +13,84 @@
 
 ## ⬇️ Installation
 
-Add the following dependency to your `build.sbt`:
+Add the core to your `build.sbt`:
 
 ```scala
 libraryDependencies += "com.alecdorrington" %% "megalingual" % "0.1.0"
 ```
+
+And, for a [Laminar](https://laminar.dev/) app, the picker:
+
+```scala
+libraryDependencies += "com.alecdorrington" %% "megalingual-laminar" % "0.1.0"
+```
+
+The core is for the JVM and, through [Scala.js](https://www.scala-js.org/), for JavaScript, and the picker for
+JavaScript alone. sbt 2 resolves `%%` to the right artefact (sbt 1 needs `%%%`).
+
+## 🗣️ Usage
+
+_Megalingual_ knows 56 languages and varieties, as a tree (British English beneath English), each
+with its flag, the direction it is written in, its plural rule, and its name in every one of them.
+
+```scala
+import com.alecdorrington.megalingual.*
+import com.alecdorrington.megalingual.Language.*
+
+French.name(in = German)  // "Französisch"
+English.title(in = French) // "Anglais", as it begins a menu's item
+Polish.plural(22)          // Plural.Few
+Language.fromTag("es-MX")  // Some(LatinAmericanSpanish)
+```
+
+An app names the languages it supports in a `Supported`, with what it has in each, such as its
+interface's text. A language outside them is read in the nearest one: a variety of it, else one in
+the same script, else its parent's nearest, else the default. A reader's language is negotiated from
+their choice and their browser's preferences, and the picker offers the supported languages, with
+their flags and names, varieties beneath the languages they are varieties of:
+
+```scala
+import com.alecdorrington.megalingual.*
+import com.alecdorrington.megalingual.Language.*
+import com.alecdorrington.megalingual.laminar.*
+import com.raquo.laminar.api.L.*
+
+trait Strings:
+  def languageLabel: String
+  def greeting: String
+
+object BritishStrings extends Strings:
+  val languageLabel = "Language"
+  val greeting      = "Hello"
+
+object FrenchStrings extends Strings:
+  val languageLabel = "Langue"
+  val greeting      = "Bonjour"
+
+val interface = Supported(BritishEnglish):
+  case BritishEnglish => BritishStrings
+  case French         => FrenchStrings
+
+val reading = Var(interface.negotiate(chosen = None, Browser.preferences))
+
+val app = div(
+  Written.in(reading.signal),
+  LanguagePicker(
+    languages = interface.listed,
+    chosen = reading.signal,
+    choose = reading.writer.contramap: chosen =>
+      interface.negotiate(Some(chosen), Browser.preferences),
+    in = reading.signal,
+    label = reading.signal.map(interface(_).languageLabel),
+    ownFirst = true,
+  ),
+  p(child.text <-- reading.signal.map(interface(_).greeting)),
+)
+```
+
+`Written.in(language)` marks an element as written in a language (`lang` and `dir`), and
+`Intl` sorts and lists names as a language does. The picker's stylesheet goes in the page's head,
+so a picker inside a shadow root is unstyled.
 
 ## 👁️ See also
 
