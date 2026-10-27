@@ -1,7 +1,7 @@
-ThisBuild / description := "A reusable template for Scala libraries."
+ThisBuild / description :=
+  "Languages with their names and flags, and a Laminar picker for choosing one."
 
-ThisBuild / homepage :=
-  Some(uri("https://alecdorrington.com/scala-library-template"))
+ThisBuild / homepage := Some(uri("https://alecdorrington.com/megalingual"))
 
 ThisBuild / organization         := "com.alecdorrington"
 ThisBuild / organizationName     := "Alec Dorrington"
