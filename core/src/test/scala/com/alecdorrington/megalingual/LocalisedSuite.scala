@@ -3,9 +3,9 @@ package com.alecdorrington.megalingual
 import com.alecdorrington.megalingual.Language.*
 import munit.FunSuite
 
-class SupportedSuite extends FunSuite:
+class LocalisedSuite extends FunSuite:
 
-  private val supported = Supported(BritishEnglish):
+  private val localised = Localised(BritishEnglish):
     case BritishEnglish  => "en-GB"
     case AmericanEnglish => "en-US"
     case French          => "fr"
@@ -15,7 +15,7 @@ class SupportedSuite extends FunSuite:
     "The supported languages are those the function is defined for, the default among them, or those given to only and all",
   ):
     assertEquals(
-      supported.languages.toSet,
+      localised.languages.toSet,
       Set(
         BritishEnglish,
         AmericanEnglish,
@@ -23,20 +23,20 @@ class SupportedSuite extends FunSuite:
         GermanGerman,
       ),
     )
-    assertEquals(supported.default, BritishEnglish)
-    intercept[IllegalArgumentException](Supported(Japanese) { case French =>
+    assertEquals(localised.default, BritishEnglish)
+    intercept[IllegalArgumentException](Localised(Japanese) { case French =>
       1
     })
     assertEquals(
-      Supported.only(French, German)(SwissGerman),
+      Localised.only(French, German)(SwissGerman),
       German,
     )
     assertEquals(
-      Supported.all(English).languages,
+      Localised.all(English).languages,
       Language.values.toList,
     )
     assertEquals(
-      Supported.all(English)(Cantonese),
+      Localised.all(English)(Cantonese),
       Cantonese,
     )
 
@@ -44,32 +44,32 @@ class SupportedSuite extends FunSuite:
     "Listed languages add every language two supported ones are varieties of",
   ):
     assertEquals(
-      supported.listed.toSet,
-      supported.languages.toSet + English,
+      localised.listed.toSet,
+      localised.languages.toSet + English,
     )
     assertEquals(
-      Supported.only(BritishEnglish, French).listed,
+      Localised.only(BritishEnglish, French).listed,
       List(BritishEnglish, French),
     )
 
   test(
     "A language is read in itself, a variety, one in the same script, or its parent's nearest",
   ):
-    assertEquals(supported.resolve(French), French)
+    assertEquals(localised.resolve(French), French)
     assertEquals(
-      supported.resolve(English),
+      localised.resolve(English),
       BritishEnglish,
     )
     assertEquals(
-      supported.resolve(AustralianEnglish),
+      localised.resolve(AustralianEnglish),
       BritishEnglish,
     )
-    assertEquals(supported.nearest(Japanese), None)
+    assertEquals(localised.nearest(Japanese), None)
     assertEquals(
-      supported.resolve(Japanese),
+      localised.resolve(Japanese),
       BritishEnglish,
     )
-    val chinese = Supported.only(SimplifiedChinese, TraditionalChinese)
+    val chinese = Localised.only(SimplifiedChinese, TraditionalChinese)
     assertEquals(
       chinese.resolve(Cantonese),
       TraditionalChinese,
@@ -79,22 +79,22 @@ class SupportedSuite extends FunSuite:
       TraditionalChinese,
     )
     assertEquals(
-      Supported.only(SimplifiedChinese, Cantonese).resolve(TraditionalChinese),
+      Localised.only(SimplifiedChinese, Cantonese).resolve(TraditionalChinese),
       Cantonese,
     )
     assertEquals(
-      Supported.only(SimplifiedChinese).resolve(Cantonese),
+      Localised.only(SimplifiedChinese).resolve(Cantonese),
       SimplifiedChinese,
     )
 
   test(
     "What the app has is found as the language is read, made only once it is read",
   ):
-    assertEquals(supported(AmericanEnglish), "en-US")
-    assertEquals(supported(SwissGerman), "de-DE")
-    assertEquals(supported(Korean), "en-GB")
+    assertEquals(localised(AmericanEnglish), "en-US")
+    assertEquals(localised(SwissGerman), "de-DE")
+    assertEquals(localised(Korean), "en-GB")
     var made    = 0
-    val counted = Supported(French):
+    val counted = Localised(French):
       case French =>
         made += 1
         "fr"
@@ -106,7 +106,7 @@ class SupportedSuite extends FunSuite:
     "A language the reader names comes before another's parent, and before one in the same script",
   ):
     assertEquals(
-      Supported
+      Localised
         .only(SimplifiedChinese, TraditionalChinese)
         .negotiate(
           None,
@@ -115,7 +115,7 @@ class SupportedSuite extends FunSuite:
       TraditionalChinese,
     )
     assertEquals(
-      Supported
+      Localised
         .only(BritishEnglish, AmericanEnglish)
         .negotiate(
           None,
@@ -124,21 +124,21 @@ class SupportedSuite extends FunSuite:
       AmericanEnglish,
     )
     assertEquals(
-      Supported
+      Localised
         .only(BritishEnglish, French)
         .negotiate(None, List(AustralianEnglish, French)),
       French,
     )
     assertEquals(
-      supported.negotiate(None, List(SwissGerman)),
+      localised.negotiate(None, List(SwissGerman)),
       GermanGerman,
     )
     assertEquals(
-      supported.negotiate(Some(AustralianEnglish), List(French)),
+      localised.negotiate(Some(AustralianEnglish), List(French)),
       BritishEnglish,
     )
     assertEquals(
-      Supported
+      Localised
         .only(SimplifiedChinese, Cantonese)
         .negotiate(
           None,
@@ -147,7 +147,7 @@ class SupportedSuite extends FunSuite:
       SimplifiedChinese,
     )
     assertEquals(
-      Supported
+      Localised
         .only(SimplifiedChinese, TraditionalChinese)
         .negotiate(
           None,
@@ -156,7 +156,7 @@ class SupportedSuite extends FunSuite:
       SimplifiedChinese,
     )
     assertEquals(
-      Supported
+      Localised
         .only(SimplifiedChinese, TraditionalChinese)
         .negotiate(None, List(Cantonese, English)),
       TraditionalChinese,
@@ -166,30 +166,30 @@ class SupportedSuite extends FunSuite:
     "A choice comes before preferences, an unsupported one is passed, and a broader one is read in the variety the reader prefers",
   ):
     assertEquals(
-      supported.negotiate(Some(French), List(GermanGerman)),
+      localised.negotiate(Some(French), List(GermanGerman)),
       French,
     )
     assertEquals(
-      supported.negotiate(Some(Korean), List(GermanGerman)),
+      localised.negotiate(Some(Korean), List(GermanGerman)),
       GermanGerman,
     )
     assertEquals(
-      supported.negotiate(None, List(Japanese, French)),
+      localised.negotiate(None, List(Japanese, French)),
       French,
     )
     assertEquals(
-      supported.negotiate(None, Nil),
+      localised.negotiate(None, Nil),
       BritishEnglish,
     )
     assertEquals(
-      supported.negotiate(None, List(English, AmericanEnglish)),
+      localised.negotiate(None, List(English, AmericanEnglish)),
       AmericanEnglish,
     )
     assertEquals(
-      supported.negotiate(Some(English), List(AmericanEnglish)),
+      localised.negotiate(Some(English), List(AmericanEnglish)),
       AmericanEnglish,
     )
     assertEquals(
-      supported.negotiate(Some(English), Nil),
+      localised.negotiate(Some(English), Nil),
       BritishEnglish,
     )

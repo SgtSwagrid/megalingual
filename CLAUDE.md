@@ -22,15 +22,15 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   each in a match of its own, in its type's companion where it has one, so that code using none of them links none, and a flag is drawn only when shown. Those
   matches have no wildcard, so that a language added breaks the build until every fact of it is written (CI compiles
   with `-Werror`); `claims` and `akin` list only the exceptions. Apps must never match on every language: they name
-  those they support in a `Supported`, whose partial function's domain is the set and whose values are made only
+  those they support in a `Localised`, whose partial function's domain is the set and whose values are made only
   when read.
 - Every name is written by hand (agents, not a generator from CLDR), one `In<Language>` object per language named in,
   as written mid-sentence there; `title` capitalises the first letter for menus. Varieties naming languages alike
   share one object, and one differing in a few overrides them and falls back to the object it overrides
   (`InEuropeanPortuguese` to `InPortuguese`, `InCantonese`, Hong Kong's, to `InTraditionalChinese`, Taiwan's). The `add-language` skill (`.claude/skills/`) says how to add a language.
-- `Supported` reads a language outside the set in its nearest supported one: itself, its first supported variety,
+- `Localised` reads a language outside the set in its nearest supported one: itself, its first supported variety,
   else one in the same script (`akin`, which goes both ways, Cantonese and traditional Chinese, and serves only
-  `Supported`), else its parent's nearest, else the default. `negotiate` takes the reader's choice first, then each
+  `Localised`), else its parent's nearest, else the default. `negotiate` takes the reader's choice first, then each
   preference that is supported itself or by a variety, and only then reads any in another (`nearest`), so a
   language the reader names is never passed over for a sibling or one in the same script; a broader language is read
   in a variety they also prefer. `listed` adds a broader language only

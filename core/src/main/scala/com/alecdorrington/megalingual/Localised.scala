@@ -1,10 +1,10 @@
 package com.alecdorrington.megalingual
 
 /**
-  * The languages an app supports, each with what the app has in it, such as its
-  * interface's text. A language outside them is read in the nearest one: its
-  * first supported variety, else one in the same script, else its parent's
-  * nearest, else the default.
+  * What an app has in each language it supports, such as its interface's text.
+  * A language outside them is read in the nearest one: its first supported
+  * variety, else one in the same script, else its parent's nearest, else the
+  * default.
   *
   * The languages are a partial function's domain, so that an app names only
   * those it supports, never every [[Language]], and what it has in one is made
@@ -19,7 +19,7 @@ package com.alecdorrington.megalingual
   * @tparam A
   *   What the app has in each language.
   */
-final class Supported[+A] private (
+final class Localised[+A] private (
   val default: Language,
   values: PartialFunction[Language, A],
 ):
@@ -134,13 +134,13 @@ final class Supported[+A] private (
     .find(preference => preference.within(language) && supports(preference))
     .orElse(beneath(language))
 
-object Supported:
+object Localised:
 
   /**
     * Supports the languages a partial function is defined for, each with what
     * it gives, as in
     * {{{
-    * Supported(BritishEnglish):
+    * Localised(BritishEnglish):
     *   case BritishEnglish => britishStrings
     *   case French         => frenchStrings
     * }}}
@@ -156,17 +156,17 @@ object Supported:
     *   What the app has in each language.
     *
     * @return
-    *   A set of supported languages.
+    *   What the app has in each language it supports.
     */
   def apply[A]
     (default: Language)
     (values: PartialFunction[Language, A])
-    : Supported[A] =
+    : Localised[A] =
     require(
       values.isDefinedAt(default),
       s"The default, $default, is supported.",
     )
-    new Supported(default, values)
+    new Localised(default, values)
 
   /**
     * Supports the given languages, with nothing in them but themselves.
@@ -178,9 +178,9 @@ object Supported:
     *   The other languages supported.
     *
     * @return
-    *   A set of supported languages, each giving itself.
+    *   The languages, each giving itself.
     */
-  def only(default: Language, others: Language*): Supported[Language] =
+  def only(default: Language, others: Language*): Localised[Language] =
     val supported = others.toSet + default
     apply(default) { case language if supported(language) => language }
 
@@ -191,7 +191,7 @@ object Supported:
     *   The language read in when nothing chooses another.
     *
     * @return
-    *   A set of every language, each giving itself.
+    *   Every language, each giving itself.
     */
-  def all(default: Language): Supported[Language] =
+  def all(default: Language): Localised[Language] =
     only(default, Language.values*)
