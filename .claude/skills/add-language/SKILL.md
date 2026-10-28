@@ -14,12 +14,12 @@ against CLDR where that helps. Then:
    after its parent (and after the parent's other varieties): its BCP 47 code, as specific as
    tells it from the others; its `Direction`; and its `parent` if it is a variety of a language
    already there.
-   - Its flag goes in `Flags.of` (`core/src/main/scala/com/alecdorrington/megalingual/Flags.scala`): `Flag.bands(...)` for
-     stripes, otherwise `Flag.of(...)`, a few SVG shapes on a canvas 60 units wide by 40 high, as
+   - Its flag goes in `Flag.of` (`core/src/main/scala/com/alecdorrington/megalingual/Flag.scala`): `bands(...)` for
+     stripes, otherwise `drawn(...)`, a few SVG shapes on a canvas 60 units wide by 40 high, as
      a Scala string.
    - A second variety of a language turns it into one with varieties: add a case for each
      beneath it (`de-DE` and `de-CH` beneath `de`), give the parent a tile of its code in
-     `Flags.of`, and list first among its children the variety a reader naming only the language
+     `Flag.of`, and list first among its children the variety a reader naming only the language
      should get. Codes may change: nothing keeps old ones readable.
    - If browsers name it by tags that would otherwise reach another language, or none (`es-MX`
      for `es-419`, `no` for `nb`), list them in `Language.claims`. If its readers read another

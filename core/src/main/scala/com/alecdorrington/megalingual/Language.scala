@@ -34,7 +34,7 @@ enum Language
   ):
 
   /** The language's flag, drawn when first shown. */
-  lazy val flag: Flag = Flags.of(this)
+  lazy val flag: Flag = Flag.of(this)
 
   /**
     * Names the language in another, as written mid-sentence there (`anglais` in

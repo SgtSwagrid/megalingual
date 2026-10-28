@@ -18,8 +18,8 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   (`laminar/`, Scala.js alone, on Laminar 18). Nothing in the core touches Laminar or the DOM, so that a JVM server
   or a project without Laminar takes it alone. Each matrix pins its `sourceDirectory` to this build's base.
 - `Language` is one enum of every language, as a tree of varieties (`parent`), each with its code and `Direction`
-  in its case, and its flag (`Flags.of`, SVG markup), plural rule (`Plural.of`) and name in every language (`names/`)
-  each in a match of its own, so that code using none of them links none, and a flag is drawn only when shown. Those
+  in its case, and its flag (`Flag.of`, SVG markup), plural rule (`Plural.of`) and name in every language (`names/`)
+  each in a match of its own, in its type's companion where it has one, so that code using none of them links none, and a flag is drawn only when shown. Those
   matches have no wildcard, so that a language added breaks the build until every fact of it is written (CI compiles
   with `-Werror`); `claims` and `akin` list only the exceptions. Apps must never match on every language: they name
   those they support in a `Supported`, whose partial function's domain is the set and whose values are made only
