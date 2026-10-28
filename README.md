@@ -1,7 +1,7 @@
 <div align="center">
 
   <h1>🌐 Megalingual</h1>
-  <p>Languages with their names and flags, and a Laminar picker for choosing one.</p>
+  <p>Internationalisation helpers with languages and flags.</p>
   
   <span>
     <a href="https://github.com/SgtSwagrid/megalingual/actions/workflows/build-integrity.yml"><img src="https://github.com/SgtSwagrid/megalingual/actions/workflows/build-integrity.yml/badge.svg" alt="Build status" /></a>
@@ -11,22 +11,22 @@
   
 </div>
 
+> [!WARNING]
+> Megalingual is still a prototype. Anything could be broken or change between minor versions.
+
 ## ⬇️ Installation
 
-Add the core to your `build.sbt`:
+There are several components which can be installed separately, but the same version number (e.g. [latest](../../releases/latest)) must be used across all of them.
+The following applies for [Scala 3](https://www.scala-lang.org/) projects built with [sbt 2](https://www.scala-sbt.org/).
+Add the desired components to your `build.sbt` file:
 
 ```scala
-libraryDependencies += "com.alecdorrington" %% "megalingual" % "0.1.0"
+// Core (required)
+libraryDependencies += "com.alecdorrington" %% "megalingual" % "{version}"
+
+// Laminar language picker component
+libraryDependencies += "com.alecdorrington" %% "megalingual-laminar" % "{version}"
 ```
-
-And, for a [Laminar](https://laminar.dev/) app, the picker:
-
-```scala
-libraryDependencies += "com.alecdorrington" %% "megalingual-laminar" % "0.1.0"
-```
-
-The core is for the JVM and, through [Scala.js](https://www.scala-js.org/), for JavaScript, and the picker for
-JavaScript alone. sbt 2 resolves `%%` to the right artefact (sbt 1 needs `%%%`).
 
 ## 🗣️ Usage
 
