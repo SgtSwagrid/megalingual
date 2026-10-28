@@ -62,25 +62,24 @@ class LanguageSuite extends FunSuite:
   test(
     "A tag finds its longest known prefix, or a language claiming it, and tags find theirs in order, each once",
   ):
-    assertEquals(
-      fromTag("en_us"),
-      Some(AmericanEnglish),
-    )
-    assertEquals(fromTag("de-AT"), Some(German))
-    assertEquals(
-      fromTag("es-MX"),
-      Some(LatinAmericanSpanish),
-    )
-    assertEquals(fromTag("zh-Hant-HK"), Some(Cantonese))
-    assertEquals(
-      fromTag("zh-Hant"),
-      Some(TraditionalChinese),
-    )
-    assertEquals(fromTag("zh-Hans-HK"), Some(Chinese))
-    assertEquals(fromTag("no"), Some(Norwegian))
-    assertEquals(fromTag(" fr "), Some(French))
-    assertEquals(fromTag("xx-YY"), None)
-    assertEquals(fromTag(""), None)
+    List(
+      "en_us"              -> Some(AmericanEnglish),
+      "en-US-u-ca-gregory" -> Some(AmericanEnglish),
+      "de-AT"              -> Some(German),
+      "es-MX"              -> Some(LatinAmericanSpanish),
+      "pt-AO"              -> Some(EuropeanPortuguese),
+      "zh-Hant-HK"         -> Some(Cantonese),
+      "zh-MO"              -> Some(Cantonese),
+      "zh-Hant"            -> Some(TraditionalChinese),
+      "zh-Hant-TW"         -> Some(TraditionalChinese),
+      "zh-Hans-SG"         -> Some(Chinese),
+      "zh-Hans-HK"         -> Some(Chinese),
+      "no"                 -> Some(Norwegian),
+      "fil-PH"             -> Some(Filipino),
+      " fr "               -> Some(French),
+      "xx-YY"              -> None,
+      ""                   -> None,
+    ).foreach((tag, language) => assertEquals(fromTag(tag), language, tag))
     assertEquals(
       fromTags(List("en-US", "en", "xx", "en-US", "fr")),
       List(AmericanEnglish, English, French),
