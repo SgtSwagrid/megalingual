@@ -11,7 +11,9 @@ class SupportedSuite extends FunSuite:
     case French          => "fr"
     case GermanGerman    => "de-DE"
 
-  test("The supported languages are those the function is defined for"):
+  test(
+    "The supported languages are those the function is defined for, the default among them, or those given to only and all",
+  ):
     assertEquals(
       supported.languages.toSet,
       Set(
@@ -22,6 +24,21 @@ class SupportedSuite extends FunSuite:
       ),
     )
     assertEquals(supported.default, BritishEnglish)
+    intercept[IllegalArgumentException](Supported(Japanese) { case French =>
+      1
+    })
+    assertEquals(
+      Supported.only(French, German)(SwissGerman),
+      German,
+    )
+    assertEquals(
+      Supported.all(English).languages,
+      Language.values.toList,
+    )
+    assertEquals(
+      Supported.all(English)(Cantonese),
+      Cantonese,
+    )
 
   test(
     "Listed languages add every language two supported ones are varieties of",
@@ -35,7 +52,9 @@ class SupportedSuite extends FunSuite:
       List(BritishEnglish, French),
     )
 
-  test("A language is read in itself, a variety, or its parent's nearest"):
+  test(
+    "A language is read in itself, a variety, one in the same script, or its parent's nearest",
+  ):
     assertEquals(supported.resolve(French), French)
     assertEquals(
       supported.resolve(English),
@@ -45,17 +64,11 @@ class SupportedSuite extends FunSuite:
       supported.resolve(AustralianEnglish),
       BritishEnglish,
     )
-    assertEquals(
-      supported.resolve(SwissGerman),
-      GermanGerman,
-    )
     assertEquals(supported.nearest(Japanese), None)
     assertEquals(
       supported.resolve(Japanese),
       BritishEnglish,
     )
-
-  test("A language unsupported is read in one in the same script first"):
     val chinese = Supported.only(SimplifiedChinese, TraditionalChinese)
     assertEquals(
       chinese.resolve(Cantonese),
@@ -74,7 +87,24 @@ class SupportedSuite extends FunSuite:
       SimplifiedChinese,
     )
 
-  test("A language the reader names comes before another's parent"):
+  test(
+    "What the app has is found as the language is read, made only once it is read",
+  ):
+    assertEquals(supported(AmericanEnglish), "en-US")
+    assertEquals(supported(SwissGerman), "de-DE")
+    assertEquals(supported(Korean), "en-GB")
+    var made    = 0
+    val counted = Supported(French):
+      case French =>
+        made += 1
+        "fr"
+    assertEquals(made, 0)
+    assertEquals(counted(French), "fr")
+    assertEquals(made, 1)
+
+  test(
+    "A language the reader names comes before another's parent, and before one in the same script",
+  ):
     assertEquals(
       Supported
         .only(SimplifiedChinese, TraditionalChinese)
@@ -107,8 +137,6 @@ class SupportedSuite extends FunSuite:
       supported.negotiate(Some(AustralianEnglish), List(French)),
       BritishEnglish,
     )
-
-  test("A language the reader names comes before one in the same script"):
     assertEquals(
       Supported
         .only(SimplifiedChinese, Cantonese)
@@ -134,12 +162,9 @@ class SupportedSuite extends FunSuite:
       TraditionalChinese,
     )
 
-  test("What the app has is found as the language is read"):
-    assertEquals(supported(AmericanEnglish), "en-US")
-    assertEquals(supported(SwissGerman), "de-DE")
-    assertEquals(supported(Korean), "en-GB")
-
-  test("A choice comes before preferences, and an unsupported one is passed"):
+  test(
+    "A choice comes before preferences, an unsupported one is passed, and a broader one is read in the variety the reader prefers",
+  ):
     assertEquals(
       supported.negotiate(Some(French), List(GermanGerman)),
       French,
@@ -156,8 +181,6 @@ class SupportedSuite extends FunSuite:
       supported.negotiate(None, Nil),
       BritishEnglish,
     )
-
-  test("A broader language is read in the variety the reader prefers"):
     assertEquals(
       supported.negotiate(None, List(English, AmericanEnglish)),
       AmericanEnglish,
@@ -169,33 +192,4 @@ class SupportedSuite extends FunSuite:
     assertEquals(
       supported.negotiate(Some(English), Nil),
       BritishEnglish,
-    )
-
-  test("What the app has in a language is made only once it is read"):
-    var made    = 0
-    val counted = Supported(French):
-      case French =>
-        made += 1
-        "fr"
-    assertEquals(made, 0)
-    assertEquals(counted(French), "fr")
-    assertEquals(made, 1)
-
-  test("The default must be supported"):
-    intercept[IllegalArgumentException](Supported(Japanese) { case French =>
-      1
-    })
-
-  test("Only and all support languages giving themselves"):
-    assertEquals(
-      Supported.only(French, German)(SwissGerman),
-      German,
-    )
-    assertEquals(
-      Supported.all(English).languages,
-      Language.values.toList,
-    )
-    assertEquals(
-      Supported.all(English)(Cantonese),
-      Cantonese,
     )

@@ -42,7 +42,7 @@ against CLDR where that helps. Then:
    (`sbt 'set ThisBuild / scalacOptions += "-Werror"; Test/compile'`, as CI does): a match
    missing the new case fails to compile. The tests check that every language is named in every
    other, that no name repeats within a language, that every code finds its language, and that
-   every language has a plural category for every count. Add plural tests for a new rule.
+   every language has a plural category for every count. Add a row to `PluralSuite`'s table for a new rule.
 
 Apps using Megalingual need no change: they name the languages they support in a `Supported`,
 never all of them, and pickers offer what the app lists.

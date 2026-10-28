@@ -9,7 +9,9 @@ class LanguagePickerSuite extends FunSuite:
 
   private val inEnglish = Naming(English, ownFirst = false, none = "None")
 
-  test("Varieties follow their nearest offered ancestor, one level deeper"):
+  test(
+    "Varieties follow their nearest offered ancestor, one level deeper, and siblings are sorted by the names leading them",
+  ):
     assertEquals(
       LanguagePicker.choices(
         List(
@@ -29,8 +31,6 @@ class LanguagePickerSuite extends FunSuite:
         Choice(Some(SwissGerman), 0),
       ),
     )
-
-  test("Siblings are sorted by the names leading them"):
     val languages = List(German, Japanese, French)
     assertEquals(
       LanguagePicker.choices(languages, inEnglish).flatMap(_.language),
@@ -46,7 +46,9 @@ class LanguagePickerSuite extends FunSuite:
       List(German, French, Japanese),
     )
 
-  test("A language leads with one name and shows the other aside"):
+  test(
+    "A language leads with one name and shows the other aside, and a letter typed finds either, ignoring accents",
+  ):
     assertEquals(inEnglish.lead(French), "French")
     assertEquals(
       inEnglish.aside(French),
@@ -54,8 +56,6 @@ class LanguagePickerSuite extends FunSuite:
     )
     assertEquals(inEnglish.aside(English), None)
     assertEquals(inEnglish.lead(None), "None")
-
-  test("A letter typed finds either name, ignoring accents"):
     val ownFirst = inEnglish.copy(ownFirst = true)
     assert(ownFirst.begins(Some(Czech), "c"))
     assert(ownFirst.begins(Some(Czech), "C"))
@@ -64,14 +64,14 @@ class LanguagePickerSuite extends FunSuite:
     assert(!inEnglish.begins(Some(German), "x"))
     assert(inEnglish.begins(None, "n"))
 
-  test("Lists are joined as the language lists things"):
+  test(
+    "Lists are joined as the language lists things, and names sorted as it orders words",
+  ):
     assertEquals(
       Intl.listed(List("A", "B", "C"), German),
       "A, B und C",
     )
     assertEquals(Intl.listed(List("A"), German), "A")
-
-  test("Names are sorted as the language orders words"):
     assertEquals(
       Intl.sorted(
         List("Österreich", "Zypern", "Ost"),
