@@ -5,7 +5,7 @@ description: Add a language to Megalingual (or revise one's names, flag or plura
 
 # Add a language to Megalingual
 
-A language is a case of `enum Language` in `core/src/main/scala/Language.scala`, and everything
+A language is a case of `enum Language` in `core/src/main/scala/com/alecdorrington/megalingual/Language.scala`, and everything
 the library knows of it is written by hand: its flag, its direction, its plural rule and its
 names. Nothing is generated from CLDR or anything else; write the data yourself, checking it
 against CLDR where that helps. Then:
@@ -14,7 +14,7 @@ against CLDR where that helps. Then:
    after its parent (and after the parent's other varieties): its BCP 47 code, as specific as
    tells it from the others; its `Direction`; and its `parent` if it is a variety of a language
    already there.
-   - Its flag goes in `Flags.of` (`core/src/main/scala/Flags.scala`): `Flag.bands(...)` for
+   - Its flag goes in `Flags.of` (`core/src/main/scala/com/alecdorrington/megalingual/Flags.scala`): `Flag.bands(...)` for
      stripes, otherwise `Flag.of(...)`, a few SVG shapes on a canvas 60 units wide by 40 high, as
      a Scala string.
    - A second variety of a language turns it into one with varieties: add a case for each
@@ -26,10 +26,10 @@ against CLDR where that helps. Then:
      language outside its tree best when it is missing, as Cantonese's read traditional Chinese,
      list each in the other's `Language.akin` (the link goes both ways). It changes only which
      supported language `Supported` falls back to.
-2. **Its plural rule.** Add it to the match in `Plural.of` (`core/src/main/scala/Plural.scala`):
+2. **Its plural rule.** Add it to the match in `Plural.of` (`core/src/main/scala/com/alecdorrington/megalingual/Plural.scala`):
    CLDR's cardinal rule for whole numbers. A variety goes with its parent unless its rule differs.
 3. **Its name in every language.** Add a case to every `In*.scala` in
-   `core/src/main/scala/names/`, in the same place as in `Language`. Each name is the one a
+   `core/src/main/scala/com/alecdorrington/megalingual/names/`, in the same place as in `Language`. Each name is the one a
    native writer of that language uses, as it reads mid-sentence (lower case in French,
    "anglais"); `Language.title` capitalises it for menus. Within one file no two languages may
    share a name, so a parent and its varieties all differ.

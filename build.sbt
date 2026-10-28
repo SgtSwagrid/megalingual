@@ -22,14 +22,15 @@ ThisBuild / scalacOptions ++= Seq(
 // projects of a build that includes this one by reference. Each module's
 // sources are pinned to this build's base, which a matrix would otherwise
 // resolve against the working directory, not this build's when another build
-// includes it.
+// includes it. The core, built for both the JVM and JS, keeps its sources in
+// their packages' directories rather than under a package prefix, as IntelliJ
+// never gives one to the sources the two share.
 
 /** Languages, their names, flags and plural rules, with no Laminar. */
 lazy val megalingual = projectMatrix
   .in(file("core"))
   .settings(
     name            := "megalingual",
-    packagePrefix   := "com.alecdorrington.megalingual",
     sourceDirectory := (ThisBuild / baseDirectory).value / "core" / "src",
     Dependencies.circe,
     Dependencies.munit,
