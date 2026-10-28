@@ -118,13 +118,33 @@ class LanguageSuite extends FunSuite:
     )
     assertEquals(English.direction, LeftToRight)
 
-  test("Every language has a flag"):
+  test(
+    "Every language has a flag, as a data URI holding nothing a URI misreads",
+  ):
     for language <- languages do
       assert(
         language.flag.markup.startsWith("<svg"),
         s"$language",
       )
-      assert(language.flag.dataUri.startsWith("data:image/svg+xml"))
+      val uri = language.flag.dataUri
+      assert(
+        uri.startsWith("data:image/svg+xml;utf8,%3Csvg"),
+        uri,
+      )
+      assert(
+        !uri.exists("#\"<>".contains(_)),
+        s"$language",
+      )
+
+  test("A language's flag shows its code exactly when it has varieties"):
+    for language <- languages do
+      assertEquals(
+        language.flag.markup.contains("<text"),
+        language.children.nonEmpty,
+        s"$language",
+      )
+    assert(English.flag.markup.contains(">EN</text>"))
+    assert(Chinese.flag.markup.contains(">ZH</text>"))
 
   test("A language is kept as its code"):
     assertEquals(
