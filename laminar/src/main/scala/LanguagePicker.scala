@@ -32,7 +32,7 @@ object LanguagePicker:
     * Makes a picker of one of the given languages.
     *
     * @param languages
-    *   The languages offered, such as a [[Supported]]'s `listed`.
+    *   The languages offered, such as a [[Localised]]'s `listed`.
     *
     * @param chosen
     *   The chosen language.
@@ -79,7 +79,7 @@ object LanguagePicker:
     * Makes a picker of one of the given languages or none, the first choice.
     *
     * @param languages
-    *   The languages offered, such as a [[Supported]]'s `listed`.
+    *   The languages offered, such as a [[Localised]]'s `listed`.
     *
     * @param chosen
     *   The chosen language, if any.

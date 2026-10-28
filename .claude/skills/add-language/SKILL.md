@@ -25,7 +25,7 @@ against CLDR where that helps. Then:
      for `es-419`, `no` for `nb`), list them in `Language.claims`. If its readers read another
      language outside its tree best when it is missing, as Cantonese's read traditional Chinese,
      list each in the other's `Language.akin` (the link goes both ways). It changes only which
-     supported language `Supported` falls back to.
+     supported language `Localised` falls back to.
 2. **Its plural rule.** Add it to the match in `Plural.of` (`core/src/main/scala/com/alecdorrington/megalingual/Plural.scala`):
    CLDR's cardinal rule for whole numbers. A variety goes with its parent unless its rule differs.
 3. **Its name in every language.** Add a case to every `In*.scala` in
@@ -46,5 +46,5 @@ against CLDR where that helps. Then:
    `PluralSuite`'s table, in `Language`'s order, even if it shares a rule with another (with the
    rule's counts, if the rule is new): the table names every language, each with its rule.
 
-Apps using Megalingual need no change: they name the languages they support in a `Supported`,
+Apps using Megalingual need no change: they name the languages they support in a `Localised`,
 never all of them, and pickers offer what the app lists.

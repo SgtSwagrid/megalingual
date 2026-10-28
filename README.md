@@ -43,7 +43,7 @@ Polish.plural(22)          // Plural.Few
 Language.fromTag("es-MX")  // Some(LatinAmericanSpanish)
 ```
 
-An app names the languages it supports in a `Supported`, with what it has in each, such as its
+An app names the languages it supports in a `Localised`, with what it has in each, such as its
 interface's text. A language outside them is read in the nearest one: a variety of it, else one in
 the same script, else its parent's nearest, else the default. A reader's language is negotiated from
 their choice and their browser's preferences, and the picker offers the supported languages, with
@@ -67,24 +67,24 @@ object FrenchStrings extends Strings:
   val languageLabel = "Langue"
   val greeting      = "Bonjour"
 
-val interface = Supported(BritishEnglish):
+val strings = Localised(BritishEnglish):
   case BritishEnglish => BritishStrings
   case French         => FrenchStrings
 
-val reading = Var(interface.negotiate(chosen = None, Browser.preferences))
+val reading = Var(strings.negotiate(chosen = None, Browser.preferences))
 
 val app = div(
   Written.in(reading.signal),
   LanguagePicker(
-    languages = interface.listed,
+    languages = strings.listed,
     chosen = reading.signal,
     choose = reading.writer.contramap: chosen =>
-      interface.negotiate(Some(chosen), Browser.preferences),
+      strings.negotiate(Some(chosen), Browser.preferences),
     in = reading.signal,
-    label = reading.signal.map(interface(_).languageLabel),
+    label = reading.signal.map(strings(_).languageLabel),
     ownFirst = true,
   ),
-  p(child.text <-- reading.signal.map(interface(_).greeting)),
+  p(child.text <-- reading.signal.map(strings(_).greeting)),
 )
 ```
 

@@ -12,7 +12,7 @@ import io.circe.{Codec, Decoder, Encoder, KeyDecoder, KeyEncoder}
   * read from a code's shape. A broader language is read in its first variety
   * where a more specific one is needed.
   *
-  * An app supporting only some languages says so with a [[Supported]], and
+  * An app supporting only some languages says so with a [[Localised]], and
   * never matches on every language itself, so that a language added here breaks
   * no app's build.
   *
