@@ -63,6 +63,9 @@ class LanguagePickerSuite extends FunSuite:
     assert(inEnglish.begins(Some(German), "d"))
     assert(!inEnglish.begins(Some(German), "x"))
     assert(inEnglish.begins(None, "n"))
+    val inCzech = Naming(Czech, ownFirst = false, none = "Žádný")
+    assert(inCzech.begins(Some(Czech), "c"))
+    assert(inCzech.begins(None, "z"))
 
   test(
     "Lists are joined as the language lists things, and names sorted as it orders words",

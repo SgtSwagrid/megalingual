@@ -6,6 +6,169 @@ import munit.FunSuite
 
 class PluralSuite extends FunSuite:
 
+  // Each rule as counts and their categories, chosen so that no other rule
+  // categorises them all alike, and a language given the wrong rule fails.
+
+  /** One and other, as English counts, for negative numbers too. */
+  private val oneOrOther = List(
+    0L         -> Other,
+    1L         -> One,
+    2L         -> Other,
+    -1L        -> One,
+    1_000_000L -> Other,
+  )
+
+  /** Zero as one, and whole millions apart, as French counts. */
+  private val zeroAsOne = List(
+    0L             -> One,
+    1L             -> One,
+    2L             -> Other,
+    1_000_000L     -> Many,
+    1_000_001L     -> Other,
+    3_000_000_000L -> Many,
+  )
+
+  /** One alone, and whole millions apart, as Spanish counts. */
+  private val oneAndMillions = List(
+    0L         -> Other,
+    1L         -> One,
+    2L         -> Other,
+    2_000_000L -> Many,
+  )
+
+  /** Zero as one, and no millions apart, as Hindi counts. */
+  private val zeroOrOne = List(
+    0L         -> One,
+    1L         -> One,
+    2L         -> Other,
+    1_000_000L -> Other,
+  )
+
+  /** By the last digit, as Filipino counts. */
+  private val filipino = List(
+    0L  -> One,
+    1L  -> One,
+    4L  -> Other,
+    5L  -> One,
+    6L  -> Other,
+    9L  -> Other,
+    14L -> Other,
+  )
+
+  /** One, two and other, as Hebrew counts. */
+  private val dual = List(1L -> One, 2L -> Two, 3L -> Other)
+
+  /** All six categories, as Arabic counts. */
+  private val arabic = List(
+    0L   -> Zero,
+    1L   -> One,
+    2L   -> Two,
+    3L   -> Few,
+    10L  -> Few,
+    11L  -> Many,
+    99L  -> Many,
+    100L -> Other,
+    102L -> Other,
+    103L -> Few,
+  )
+
+  /** One, few up to four, and other, as Czech and Slovak count. */
+  private val westSlavic = List(
+    1L  -> One,
+    2L  -> Few,
+    4L  -> Few,
+    5L  -> Other,
+    22L -> Other,
+  )
+
+  /** One, few and many, as Polish counts. */
+  private val polish = List(
+    0L   -> Many,
+    1L   -> One,
+    2L   -> Few,
+    4L   -> Few,
+    5L   -> Many,
+    11L  -> Many,
+    12L  -> Many,
+    13L  -> Many,
+    14L  -> Many,
+    21L  -> Many,
+    22L  -> Few,
+    112L -> Many,
+    122L -> Few,
+  )
+
+  /** By the last digits, as Russian and Ukrainian count. */
+  private val eastSlavic = List(
+    0L              -> Many,
+    1L              -> One,
+    11L             -> Many,
+    12L             -> Many,
+    13L             -> Many,
+    14L             -> Many,
+    21L             -> One,
+    22L             -> Few,
+    25L             -> Many,
+    111L            -> Many,
+    10_000_000_021L -> One,
+  )
+
+  /** By the last digits, as Croatian and Serbian count. */
+  private val southSlavic = List(
+    1L  -> One,
+    11L -> Other,
+    12L -> Other,
+    21L -> One,
+    22L -> Few,
+    25L -> Other,
+  )
+
+  /** By the last two digits, as Slovenian counts. */
+  private val slovenian = List(
+    1L   -> One,
+    101L -> One,
+    2L   -> Two,
+    3L   -> Few,
+    4L   -> Few,
+    5L   -> Other,
+    11L  -> Other,
+  )
+
+  /** Tens and teens as zero, as Latvian counts. */
+  private val latvian = List(
+    0L  -> Zero,
+    1L  -> One,
+    2L  -> Other,
+    10L -> Zero,
+    11L -> Zero,
+    19L -> Zero,
+    21L -> One,
+  )
+
+  /** One, few and other, teens apart, as Lithuanian counts. */
+  private val lithuanian = List(
+    1L  -> One,
+    2L  -> Few,
+    9L  -> Few,
+    10L -> Other,
+    11L -> Other,
+    21L -> One,
+  )
+
+  /** Zero and teens as few, as Romanian counts. */
+  private val romanian = List(
+    0L   -> Few,
+    1L   -> One,
+    2L   -> Few,
+    19L  -> Few,
+    20L  -> Other,
+    101L -> Few,
+    120L -> Other,
+  )
+
+  /** No plural, as Chinese, Japanese and their kin count. */
+  private val noPlural = List(0L -> Other, 1L -> Other, 2L -> Other)
+
   test("Every language has a category for every count"):
     for
       language <- Language.values
@@ -13,90 +176,76 @@ class PluralSuite extends FunSuite:
     do language.plural(count)
 
   test(
-    "Each plural rule categorises counts as CLDR does, negative ones and those beyond an Int too",
+    "Every language categorises counts by its own rule, as CLDR does, negative ones and those beyond an Int too",
   ):
-    List(
-      (English, List(0, 1, 2, -1), List(Other, One, Other, One)),
-      (
-        French,
-        List(0, 1, 2, 1_000_000, 1_000_001),
-        List(One, One, Other, Many, Other),
-      ),
-      (EuropeanPortuguese, List(0, 2_000_000), List(Other, Many)),
-      (Hindi, List(0, 1, 2), List(One, One, Other)),
-      (
-        Filipino,
-        List(0, 1, 4, 5, 6, 9, 14),
-        List(One, One, Other, One, Other, Other, Other),
-      ),
-      (Hebrew, List(1, 2, 3), List(One, Two, Other)),
-      (
-        Arabic,
-        List(0, 1, 2, 3, 10, 11, 99, 100, 102, 103),
-        List(
-          Zero,
-          One,
-          Two,
-          Few,
-          Few,
-          Many,
-          Many,
-          Other,
-          Other,
-          Few,
+    val rules = List(
+      Arabic               -> arabic,
+      Bengali              -> zeroOrOne,
+      Bulgarian            -> oneOrOther,
+      Catalan              -> oneAndMillions,
+      Chinese              -> noPlural,
+      SimplifiedChinese    -> noPlural,
+      TraditionalChinese   -> noPlural,
+      Cantonese            -> noPlural,
+      Croatian             -> southSlavic,
+      Czech                -> westSlavic,
+      Danish               -> oneOrOther,
+      Dutch                -> oneOrOther,
+      English              -> oneOrOther,
+      BritishEnglish       -> oneOrOther,
+      AmericanEnglish      -> oneOrOther,
+      AustralianEnglish    -> oneOrOther,
+      Estonian             -> oneOrOther,
+      Filipino             -> filipino,
+      Finnish              -> oneOrOther,
+      French               -> zeroAsOne,
+      German               -> oneOrOther,
+      GermanGerman         -> oneOrOther,
+      SwissGerman          -> oneOrOther,
+      Greek                -> oneOrOther,
+      Hebrew               -> dual,
+      Hindi                -> zeroOrOne,
+      Hungarian            -> oneOrOther,
+      Indonesian           -> noPlural,
+      Italian              -> oneAndMillions,
+      Japanese             -> noPlural,
+      Korean               -> noPlural,
+      Latvian              -> latvian,
+      Lithuanian           -> lithuanian,
+      Malay                -> noPlural,
+      Norwegian            -> oneOrOther,
+      Persian              -> zeroOrOne,
+      Polish               -> polish,
+      Portuguese           -> zeroAsOne,
+      BrazilianPortuguese  -> zeroAsOne,
+      EuropeanPortuguese   -> oneAndMillions,
+      Romanian             -> romanian,
+      Russian              -> eastSlavic,
+      Serbian              -> southSlavic,
+      Slovak               -> westSlavic,
+      Slovenian            -> slovenian,
+      Spanish              -> oneAndMillions,
+      EuropeanSpanish      -> oneAndMillions,
+      LatinAmericanSpanish -> oneAndMillions,
+      Swahili              -> oneOrOther,
+      Swedish              -> oneOrOther,
+      Tamil                -> oneOrOther,
+      Thai                 -> noPlural,
+      Turkish              -> oneOrOther,
+      Ukrainian            -> eastSlavic,
+      Urdu                 -> oneOrOther,
+      Vietnamese           -> noPlural,
+    )
+    assertEquals(
+      rules.map(_._1),
+      Language.values.toList,
+    )
+    rules.foreach((language, rule) =>
+      rule.foreach((count, category) =>
+        assertEquals(
+          language.plural(count),
+          category,
+          s"$language, $count",
         ),
-      ),
-      (Czech, List(1, 2, 4, 5, 22), List(One, Few, Few, Other, Other)),
-      (
-        Polish,
-        List(0, 1, 2, 4, 5, 12, 21, 22, 112, 122),
-        List(
-          Many,
-          One,
-          Few,
-          Few,
-          Many,
-          Many,
-          Many,
-          Few,
-          Many,
-          Few,
-        ),
-      ),
-      (
-        Russian,
-        List(1, 11, 21, 22, 25, 111, 0),
-        List(One, Many, One, Few, Many, Many, Many),
-      ),
-      (Croatian, List(1, 21, 22, 25, 11), List(One, One, Few, Other, Other)),
-      (
-        Slovenian,
-        List(1, 101, 2, 3, 4, 5, 11),
-        List(One, One, Two, Few, Few, Other, Other),
-      ),
-      (
-        Latvian,
-        List(0, 1, 2, 10, 11, 19, 21),
-        List(Zero, One, Other, Zero, Zero, Zero, One),
-      ),
-      (
-        Lithuanian,
-        List(1, 2, 9, 10, 11, 21),
-        List(One, Few, Few, Other, Other, One),
-      ),
-      (
-        Romanian,
-        List(0, 1, 2, 19, 20, 101, 120),
-        List(Few, One, Few, Few, Other, Few, Other),
-      ),
-      (Chinese, List(0, 1, 2), List(Other, Other, Other)),
-    ).foreach((language, counts, categories) =>
-      assertEquals(
-        counts.map(language.plural(_)),
-        categories,
-        language,
       ),
     )
-    assertEquals(BrazilianPortuguese.plural(0), One)
-    assertEquals(Russian.plural(10_000_000_021L), One)
-    assertEquals(French.plural(3_000_000_000L), Many)
