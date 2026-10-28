@@ -30,8 +30,8 @@ libraryDependencies += "com.alecdorrington" %% "megalingual-laminar" % "{version
 
 ## 🗣️ Usage
 
-_Megalingual_ knows 56 languages and varieties, as a tree (British English beneath English), each
-with its flag, the direction it is written in, its plural rule, and its name in every one of them.
+_Megalingual_ knows 56 languages and varieties, as a tree (e.g. with British English beneath English), each
+with its flag, the direction it's written in (left-to-right vs. right-to-left), its plural rule, and the full matrix of language names.
 
 ```scala
 import com.alecdorrington.megalingual.*
