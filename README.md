@@ -30,7 +30,7 @@ libraryDependencies += "com.alecdorrington" %% "megalingual-laminar" % "{version
 
 ## 🗣️ Usage
 
-_Megalingual_ knows 57 languages and varieties, as a tree (e.g. with British English beneath English), each
+_Megalingual_ knows 59 languages and varieties, as a tree (e.g. with British English beneath English), each
 with its flag, the direction it's written in (left-to-right vs. right-to-left), its plural rule, and the full matrix of language names.
 
 ```scala
@@ -44,9 +44,10 @@ Language.fromTag("es-MX")  // Some(LatinAmericanSpanish)
 ```
 
 An app names the languages it supports in a `Localised`, with what it has in each, such as its
-interface's text. A language outside them is read in the nearest one: a variety of it, else a kindred
-one (traditional Chinese for Cantonese, Swiss Standard German for Swiss German), else its parent's
-nearest, else the default. A reader's language is negotiated from
+interface's text. A language outside them is read in the nearest one: a variety of it, else its
+parent's nearest, else the default. So a reader naming a broader language may get any variety of it the
+app has: a browser sending `de-CH`, German (Switzerland), gets Swiss German, the dialects, from an app
+with them but not Swiss Standard German. A reader's language is negotiated from
 their choice and their browser's preferences, and the picker offers the supported languages, with
 their flags and names, varieties beneath the languages they are varieties of, searched by their names
 in any language:

@@ -41,7 +41,7 @@ class LocalisedSuite extends FunSuite:
     )
 
   test(
-    "Listed languages add every language two supported ones are varieties of",
+    "Listed languages add every language with two varieties holding supported ones",
   ):
     assertEquals(
       localised.listed.toSet,
@@ -51,10 +51,20 @@ class LocalisedSuite extends FunSuite:
       Localised.only(BritishEnglish, French).listed,
       List(BritishEnglish, French),
     )
+    assertEquals(
+      Localised.only(TaiwaneseChinese, Cantonese).listed,
+      List(
+        TraditionalChinese,
+        TaiwaneseChinese,
+        Cantonese,
+      ),
+    )
+    assertEquals(
+      Localised.only(SimplifiedChinese, Cantonese).listed,
+      List(Chinese, SimplifiedChinese, Cantonese),
+    )
 
-  test(
-    "A language is read in itself, a variety, a kindred one, or its parent's nearest",
-  ):
+  test("A language is read in itself, a variety, or its parent's nearest"):
     assertEquals(localised.resolve(French), French)
     assertEquals(
       localised.resolve(English),
@@ -69,17 +79,17 @@ class LocalisedSuite extends FunSuite:
       localised.resolve(Japanese),
       BritishEnglish,
     )
-    val chinese = Localised.only(SimplifiedChinese, TraditionalChinese)
+    val chinese = Localised.only(SimplifiedChinese, TaiwaneseChinese)
     assertEquals(
       chinese.resolve(Cantonese),
-      TraditionalChinese,
+      TaiwaneseChinese,
     )
     assertEquals(
       chinese.negotiate(None, fromTags(List("zh-Hant-HK"))),
-      TraditionalChinese,
+      TaiwaneseChinese,
     )
     assertEquals(
-      Localised.only(SimplifiedChinese, Cantonese).resolve(TraditionalChinese),
+      Localised.only(SimplifiedChinese, Cantonese).resolve(TaiwaneseChinese),
       Cantonese,
     )
     assertEquals(
@@ -97,6 +107,22 @@ class LocalisedSuite extends FunSuite:
     assertEquals(
       Localised.only(GermanGerman).resolve(SwissGerman),
       GermanGerman,
+    )
+    assertEquals(
+      Localised
+        .only(
+          GermanGerman,
+          SwissStandardGerman,
+          SwissGerman,
+        )
+        .negotiate(None, fromTags(List("de-CH"))),
+      SwissStandardGerman,
+    )
+    assertEquals(
+      Localised
+        .only(GermanGerman, SwissGerman)
+        .negotiate(None, fromTags(List("de-CH", "de"))),
+      SwissGerman,
     )
 
   test(
@@ -117,17 +143,12 @@ class LocalisedSuite extends FunSuite:
     assertEquals(counted(French), "fr")
     assertEquals(made, 1)
 
-  test(
-    "A language the reader names comes before another's parent, and before a kindred one",
-  ):
+  test("A language the reader names comes before another's parent or sibling"):
     assertEquals(
       Localised
-        .only(SimplifiedChinese, TraditionalChinese)
-        .negotiate(
-          None,
-          List(Cantonese, TraditionalChinese),
-        ),
-      TraditionalChinese,
+        .only(SimplifiedChinese, TaiwaneseChinese)
+        .negotiate(None, List(Cantonese, TaiwaneseChinese)),
+      TaiwaneseChinese,
     )
     assertEquals(
       Localised
@@ -157,13 +178,13 @@ class LocalisedSuite extends FunSuite:
         .only(SimplifiedChinese, Cantonese)
         .negotiate(
           None,
-          List(TraditionalChinese, SimplifiedChinese),
+          List(TaiwaneseChinese, SimplifiedChinese),
         ),
       SimplifiedChinese,
     )
     assertEquals(
       Localised
-        .only(SimplifiedChinese, TraditionalChinese)
+        .only(SimplifiedChinese, TaiwaneseChinese)
         .negotiate(
           None,
           List(Cantonese, SimplifiedChinese),
@@ -172,9 +193,9 @@ class LocalisedSuite extends FunSuite:
     )
     assertEquals(
       Localised
-        .only(SimplifiedChinese, TraditionalChinese)
+        .only(SimplifiedChinese, TaiwaneseChinese)
         .negotiate(None, List(Cantonese, English)),
-      TraditionalChinese,
+      TaiwaneseChinese,
     )
 
   test(
