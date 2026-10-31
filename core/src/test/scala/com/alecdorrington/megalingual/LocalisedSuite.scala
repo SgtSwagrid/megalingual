@@ -103,7 +103,10 @@ class LocalisedSuite extends FunSuite:
     "What the app has is found as the language is read, made only once it is read",
   ):
     assertEquals(localised(AmericanEnglish), "en-US")
-    assertEquals(localised(SwissStandardGerman), "de-DE")
+    assertEquals(
+      localised(SwissStandardGerman),
+      "de-DE",
+    )
     assertEquals(localised(Korean), "en-GB")
     var made    = 0
     val counted = Localised(French):
