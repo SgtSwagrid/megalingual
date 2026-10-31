@@ -96,18 +96,6 @@ enum Language
     */
   def within(language: Language): Boolean = lineage.contains(language)
 
-  /**
-    * The languages outside its tree that a reader of this one reads best after
-    * it, before its parent's: those written in the same script, or by the same
-    * readers.
-    */
-  private[megalingual] def akin: List[Language] = this match
-    case Cantonese           => List(TraditionalChinese)
-    case TraditionalChinese  => List(Cantonese)
-    case SwissStandardGerman => List(SwissGerman)
-    case SwissGerman         => List(SwissStandardGerman)
-    case _                   => Nil
-
   /** Whether a BCP 47 tag is this language's code or one it claims. */
   private def tagged(tag: String): Boolean = (code :: claims).exists(
     _.equalsIgnoreCase(tag),
@@ -149,9 +137,9 @@ enum Language
         "zh-Hant-MO",
         "yue",
       )
-    case TraditionalChinese => List("zh-Hant", "zh-Hant-TW")
-    case Norwegian          => List("no")
-    case _                  => Nil
+    case TaiwaneseChinese => List("zh-Hant-TW")
+    case Norwegian        => List("no")
+    case _                => Nil
 
   /** Modern Standard Arabic. */
   case Arabic extends Language("ar", RightToLeft)
@@ -176,15 +164,26 @@ enum Language
     )
 
   /**
-    * Mandarin in traditional characters, as in Taiwan. It claims the
-    * traditional script's tags naming no other region, which would otherwise
-    * find simplified Chinese.
+    * Chinese in traditional characters, as Taiwan and Hong Kong write it, so
+    * that a reader of either is read in the other before simplified Chinese.
     */
   case TraditionalChinese
     extends Language(
-      "zh-TW",
+      "zh-Hant",
       LeftToRight,
       parent = Some(Chinese),
+    )
+
+  /**
+    * Mandarin in traditional characters, as in Taiwan. As traditional Chinese's
+    * first variety, it is what tags naming no other region find where a variety
+    * is needed.
+    */
+  case TaiwaneseChinese
+    extends Language(
+      "zh-TW",
+      LeftToRight,
+      parent = Some(TraditionalChinese),
     )
 
   /**
@@ -195,7 +194,7 @@ enum Language
     extends Language(
       "zh-HK",
       LeftToRight,
-      parent = Some(Chinese),
+      parent = Some(TraditionalChinese),
     )
 
   case Croatian extends Language("hr", LeftToRight)
@@ -247,8 +246,12 @@ enum Language
       parent = Some(German),
     )
 
-  /** Swiss Standard German, written without `ß`. */
-  case SwissStandardGerman
+  /**
+    * German as Switzerland writes and speaks it, under `de-CH`, the tag its
+    * readers' browsers send, and read in Swiss Standard German where a variety
+    * is needed. It is not `SwissGerman`, which names the dialects.
+    */
+  case GermanOfSwitzerland
     extends Language(
       "de-CH",
       LeftToRight,
@@ -256,14 +259,25 @@ enum Language
     )
 
   /**
-    * The Alemannic dialects of Switzerland, under `gsw`, their own code: `de-CH`
-    * is Swiss Standard German, which their speakers mostly write instead.
+    * Swiss Standard German, written without `ß`, under `de-CH-1996`, the
+    * reformed Swiss spelling.
+    */
+  case SwissStandardGerman
+    extends Language(
+      "de-CH-1996",
+      LeftToRight,
+      parent = Some(GermanOfSwitzerland),
+    )
+
+  /**
+    * The Alemannic dialects of Switzerland, under `gsw`, their own code. Their
+    * speakers mostly write Swiss Standard German instead.
     */
   case SwissGerman
     extends Language(
       "gsw",
       LeftToRight,
-      parent = Some(German),
+      parent = Some(GermanOfSwitzerland),
     )
 
   case Greek extends Language("el", LeftToRight)

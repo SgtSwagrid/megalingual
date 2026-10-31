@@ -3,7 +3,7 @@ package com.alecdorrington.megalingual
 /**
   * What an app has in each language it supports, such as its interface's text.
   * A language outside them is read in the nearest one: its first supported
-  * variety, else a kindred one, else its parent's nearest, else the default.
+  * variety, else its parent's nearest, else the default.
   *
   * The languages are a partial function's domain, so that an app names only
   * those it supports, never every [[Language]], and what it has in one is made
@@ -27,17 +27,20 @@ final class Localised[+A] private (
   val languages: List[Language] = Language.values.toList.filter(supports)
 
   /**
-    * The supported languages and every language two of them are varieties of,
-    * in declared order, as a picker offers them: a broader language is read in
-    * its [[nearest]] supported one. A broader language with one supported
+    * The supported languages and every language with two varieties holding
+    * them, in declared order, as a picker offers them: a broader language is
+    * read in its [[nearest]] supported one. A broader language with one such
     * variety would only offer it twice.
     */
   def listed: List[Language] = Language
     .values
     .toList
-    .filter(language =>
-      supports(language) || languages.count(_.within(language)) > 1,
-    )
+    .filter(language => supports(language) || branches(language) > 1)
+
+  /** The number of the language's varieties that are or hold supported ones. */
+  private def branches(language: Language): Int = language
+    .children
+    .count(child => languages.exists(_.within(child)))
 
   /**
     * Whether the app supports the language itself.
@@ -49,9 +52,9 @@ final class Localised[+A] private (
 
   /**
     * Finds the supported language a language is read in: itself, else its first
-    * supported variety, else a kindred one, written in the same script or by
-    * the same readers (traditional Chinese for Cantonese, Swiss Standard German
-    * for Swiss German), else its parent's nearest.
+    * supported variety, else its parent's nearest, so that a variety is read in
+    * its siblings before its parent's siblings (Cantonese in Taiwan's
+    * traditional Chinese before simplified Chinese).
     *
     * @param language
     *   The language.
@@ -59,9 +62,8 @@ final class Localised[+A] private (
     * @return
     *   A supported language, if the language's tree has one.
     */
-  def nearest(language: Language): Option[Language] = beneath(language)
-    .orElse(language.akin.iterator.flatMap(beneath).nextOption())
-    .orElse(language.parent.flatMap(nearest))
+  def nearest(language: Language): Option[Language] =
+    beneath(language).orElse(language.parent.flatMap(nearest))
 
   /** Itself, else its first supported variety. */
   private def beneath(language: Language): Option[Language] =
@@ -94,11 +96,10 @@ final class Localised[+A] private (
   /**
     * Chooses the language a reader reads in. Their choice comes first, read in
     * its [[nearest]] supported language. Then each of their preferences in
-    * turn, if it or a variety of it is supported, before any is read in a
-    * kindred one or its parent's, so that a language the reader names is never
-    * passed over. A broader language is read in a variety the reader also
-    * prefers (English is American English to a reader preferring `en-US`). Else
-    * the default.
+    * turn, if it or a variety of it is supported, before any is read in its
+    * parent's, so that a language the reader names is never passed over. A
+    * broader language is read in a variety the reader also prefers (English is
+    * American English to a reader preferring `en-US`). Else the default.
     *
     * @param chosen
     *   The language the reader chose, if any.

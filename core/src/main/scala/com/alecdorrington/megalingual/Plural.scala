@@ -23,10 +23,10 @@ object Plural:
     val n = math.abs(count)
     language match
       case English | BritishEnglish | AmericanEnglish | AustralianEnglish |
-        German | GermanGerman | SwissStandardGerman | SwissGerman | Dutch |
-        Danish | Swedish | Norwegian | Finnish | Estonian | Greek | Hungarian |
-        Turkish | Bulgarian | Swahili | Urdu | Tamil =>
-        if n == 1 then One else Other
+        German | GermanGerman | GermanOfSwitzerland | SwissStandardGerman |
+        SwissGerman | Dutch | Danish | Swedish | Norwegian | Finnish |
+        Estonian | Greek | Hungarian | Turkish | Bulgarian | Swahili | Urdu |
+        Tamil => if n == 1 then One else Other
       case French | Portuguese | BrazilianPortuguese =>
         if n <= 1 then One else millions(n)
       case Spanish | EuropeanSpanish | LatinAmericanSpanish | Italian |
@@ -44,8 +44,9 @@ object Plural:
       case Latvian             => latvian(n)
       case Lithuanian          => lithuanian(n)
       case Romanian            => romanian(n)
-      case Chinese | SimplifiedChinese | TraditionalChinese | Cantonese |
-        Japanese | Korean | Thai | Indonesian | Vietnamese | Malay => Other
+      case Chinese | SimplifiedChinese | TraditionalChinese | TaiwaneseChinese |
+        Cantonese | Japanese | Korean | Thai | Indonesian | Vietnamese |
+        Malay => Other
 
   /** A whole number of millions takes `de` in French, Spanish and kin. */
   private def millions(n: Long): Plural =

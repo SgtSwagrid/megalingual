@@ -18,14 +18,15 @@ against CLDR where that helps. Then:
      stripes, otherwise `drawn(...)`, a few SVG shapes on a canvas 60 units wide by 40 high, as
      a Scala string.
    - A second variety of a language turns it into one with varieties: add a case for each
-     beneath it (`de-DE` and `de-CH` beneath `de`), give the parent a tile of its code in
+     beneath it (`en-GB` and `en-US` beneath `en`), give the parent a tile of its code in
      `Flag.of`, and list first among its children the variety a reader naming only the language
      should get. Codes may change: nothing keeps old ones readable.
    - If browsers name it by tags that would otherwise reach another language, or none (`es-MX`
-     for `es-419`, `no` for `nb`), list them in `Language.claims`. If its readers read another
-     language outside its tree best when it is missing, as Cantonese's read traditional Chinese,
-     list each in the other's `Language.akin` (the link goes both ways). It changes only which
-     supported language `Localised` falls back to.
+     for `es-419`, `no` for `nb`), list them in `Language.claims`.
+   - A missing language is read in its siblings before its parent's, so where its readers read
+     one sibling best, as Cantonese's read Taiwan's traditional Chinese, the two share a parent of
+     their own (`zh-Hant` above `zh-TW` and `zh-HK`, `de-CH` above Swiss Standard German and Swiss
+     German), which is then a language with varieties like any other.
 2. **Its plural rule.** Add it to the match in `Plural.of` (`core/src/main/scala/com/alecdorrington/megalingual/Plural.scala`):
    CLDR's cardinal rule for whole numbers. A variety goes with its parent unless its rule differs.
 3. **Its name in every language.** Add a case to every `In*.scala` in

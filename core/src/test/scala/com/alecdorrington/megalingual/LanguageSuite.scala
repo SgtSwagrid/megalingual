@@ -35,14 +35,11 @@ class LanguageSuite extends FunSuite:
       Japanese.title(Japanese),
       Japanese.name(Japanese),
     )
-    assertEquals(
-      Italian.name(TraditionalChinese),
-      "義大利文",
-    )
+    assertEquals(Italian.name(TaiwaneseChinese), "義大利文")
     assertEquals(Italian.name(Cantonese), "意大利文")
     assertEquals(
       Japanese.name(Cantonese),
-      Japanese.name(TraditionalChinese),
+      Japanese.name(TaiwaneseChinese),
     )
 
   test("Codes are distinct, and each, exactly, finds its language"):
@@ -66,6 +63,7 @@ class LanguageSuite extends FunSuite:
       "en_us"              -> Some(AmericanEnglish),
       "en-US-u-ca-gregory" -> Some(AmericanEnglish),
       "de-AT"              -> Some(German),
+      "de-CH"              -> Some(GermanOfSwitzerland),
       "de-LI"              -> Some(SwissStandardGerman),
       "gsw-CH"             -> Some(SwissGerman),
       "es-MX"              -> Some(LatinAmericanSpanish),
@@ -73,7 +71,7 @@ class LanguageSuite extends FunSuite:
       "zh-Hant-HK"         -> Some(Cantonese),
       "zh-MO"              -> Some(Cantonese),
       "zh-Hant"            -> Some(TraditionalChinese),
-      "zh-Hant-TW"         -> Some(TraditionalChinese),
+      "zh-Hant-TW"         -> Some(TaiwaneseChinese),
       "zh-Hans-SG"         -> Some(Chinese),
       "zh-Hans-HK"         -> Some(Chinese),
       "no"                 -> Some(Norwegian),
@@ -100,6 +98,10 @@ class LanguageSuite extends FunSuite:
     )
     assert(roots.forall(_.parent.isEmpty))
     assert(roots.contains(Chinese) && !roots.contains(Cantonese))
+    assertEquals(
+      Cantonese.lineage,
+      List(Cantonese, TraditionalChinese, Chinese),
+    )
     for language <- languages do
       assert(language.ancestors.forall(ancestor => language.within(ancestor)))
 
@@ -134,23 +136,24 @@ class LanguageSuite extends FunSuite:
       )
     assert(English.flag.markup.contains(">EN</text>"))
     assert(Chinese.flag.markup.contains(">ZH</text>"))
+    assert(TraditionalChinese.flag.markup.contains(">ZH-HANT</text>"))
 
   test("A language is kept as its code, a map's key too"):
     assertEquals(
       Encoder[Language].apply(SwissStandardGerman),
-      Json.fromString("de-CH"),
+      Json.fromString("de-CH-1996"),
     )
     assertEquals(
-      Decoder[Language].decodeJson(Json.fromString("de-CH")),
+      Decoder[Language].decodeJson(Json.fromString("de-CH-1996")),
       Right(SwissStandardGerman),
     )
     assert(Decoder[Language].decodeJson(Json.fromString("no")).isLeft)
     assertEquals(
       KeyEncoder[Language].apply(SwissStandardGerman),
-      "de-CH",
+      "de-CH-1996",
     )
     assertEquals(
-      KeyDecoder[Language].apply("de-CH"),
+      KeyDecoder[Language].apply("de-CH-1996"),
       Some(SwissStandardGerman),
     )
     assertEquals(KeyDecoder[Language].apply("no"), None)
