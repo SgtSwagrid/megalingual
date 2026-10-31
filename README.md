@@ -30,7 +30,7 @@ libraryDependencies += "com.alecdorrington" %% "megalingual-laminar" % "{version
 
 ## 🗣️ Usage
 
-_Megalingual_ knows 56 languages and varieties, as a tree (e.g. with British English beneath English), each
+_Megalingual_ knows 57 languages and varieties, as a tree (e.g. with British English beneath English), each
 with its flag, the direction it's written in (left-to-right vs. right-to-left), its plural rule, and the full matrix of language names.
 
 ```scala

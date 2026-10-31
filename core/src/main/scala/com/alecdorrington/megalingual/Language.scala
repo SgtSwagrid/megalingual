@@ -258,7 +258,8 @@ enum Language
   /**
     * The Alemannic dialects of Switzerland, under `gsw`, their own code:
     * `de-CH` is Swiss Standard German, which their speakers mostly write
-    * instead.
+    * instead. Alsatian shares the code, having no case of its own, so `gsw-FR`
+    * finds Swiss German too.
     */
   case SwissGerman extends Language("gsw", LeftToRight, parent = Some(German))
 

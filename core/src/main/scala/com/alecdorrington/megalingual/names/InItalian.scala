@@ -30,7 +30,7 @@ private[megalingual] object InItalian:
     case German               => "tedesco"
     case GermanGerman         => "tedesco (Germania)"
     case SwissStandardGerman  => "tedesco standard svizzero"
-    case SwissGerman          => "svizzero tedesco"
+    case SwissGerman          => "tedesco svizzero"
     case Greek                => "greco"
     case Hebrew               => "ebraico"
     case Hindi                => "hindi"
