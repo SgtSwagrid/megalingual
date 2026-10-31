@@ -52,7 +52,8 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   and the active option keeps an outline (a background tint alone is too faint, and lost in forced colours). The
   list's scrollbar is a pill of the text faded, as the browser's own stays light on a dark surface the app sets
   without a dark `color-scheme` (Codeswitch's popup): `::-webkit-scrollbar` in Chromium and Safari (no arrows), and
-  `scrollbar-color` only where those are missing (Firefox), as Chromium ignores them wherever it is set. Every
+  `scrollbar-color` only where those are missing (Firefox), as Chromium ignores them wherever it is set (so the list
+  resets it, lest it inherit a page's). Every
   name shown, the button's too, carries its language's `lang` and `dir`. Everything touching the browser's `Intl`
   falls back to a plain rule where it is missing.
 - The Laminar module's tests run in Node, with no DOM, so they test only what builds no element.

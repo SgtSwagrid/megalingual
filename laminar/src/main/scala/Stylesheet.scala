@@ -34,7 +34,8 @@ private object Stylesheet:
     * unless the page declares a dark `color-scheme`, does not. Chromium and
     * Safari draw it as a pill, with no arrows, by `::-webkit-scrollbar`, which
     * Chromium ignores wherever `scrollbar-color` is set, so that is set only
-    * for Firefox, which lacks the pseudo-elements.
+    * for Firefox, which lacks the pseudo-elements. The list resets it, which it
+    * would otherwise inherit from a page that sets its own.
     */
   private val thumb =
     s"var(--megalingual-scrollbar, color-mix(in srgb, $text 35%, transparent))"
@@ -141,6 +142,8 @@ private object Stylesheet:
     |  padding: 0.375rem;
     |  overflow: hidden auto;
     |  overscroll-behavior: contain;
+    |  scrollbar-width: auto;
+    |  scrollbar-color: auto;
     |  list-style: none;
     |}
     |.megalingual-list::-webkit-scrollbar {
