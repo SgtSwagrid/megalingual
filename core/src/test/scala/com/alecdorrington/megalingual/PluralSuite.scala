@@ -201,6 +201,7 @@ class PluralSuite extends FunSuite:
       French               -> zeroAsOne,
       German               -> oneOrOther,
       GermanGerman         -> oneOrOther,
+      SwissStandardGerman  -> oneOrOther,
       SwissGerman          -> oneOrOther,
       Greek                -> oneOrOther,
       Hebrew               -> dual,

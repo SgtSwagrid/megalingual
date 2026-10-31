@@ -166,11 +166,9 @@ object Flag:
         "#dd0000",
         "#ffce00",
       )
-    case SwissGerman => drawn(
-        """<rect width="60" height="40" fill="#da291c"/>""" +
-          """<path d="M30,8 V32 M18,20 H42" stroke="#ffffff" stroke-width="8"/>""",
-      )
-    case Greek => drawn(
+    case SwissStandardGerman => switzerland
+    case SwissGerman         => switzerland
+    case Greek               => drawn(
         """<rect width="60" height="40" fill="#0d5eaf"/>""" +
           """<path d="M0,6.67 H60 M0,15.56 H60 M0,24.44 H60 M0,33.33 H60" """ +
           """stroke="#ffffff" stroke-width="4.44"/>""" +
@@ -445,6 +443,11 @@ object Flag:
       """stroke-width="1"/>""" +
       """<path d="M24.5,20 H35.5 M30,14.5 V25.5 M26.1,16.1 L33.9,23.9 """ +
       """M26.1,23.9 L33.9,16.1" stroke="#000080" stroke-width="0.6"/>""",
+  )
+
+  private lazy val switzerland: Flag = drawn(
+    """<rect width="60" height="40" fill="#da291c"/>""" +
+      """<path d="M30,8 V32 M18,20 H42" stroke="#ffffff" stroke-width="8"/>""",
   )
 
   private lazy val unionFlag: Flag = drawn(
