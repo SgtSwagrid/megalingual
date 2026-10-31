@@ -37,11 +37,17 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   where two of its varieties are supported.
 - No backwards compatibility: codes and formats change freely, and nothing reads superseded ones. Tag matching
   (`fromTag`, `claims`) serves what browsers send now, not old data.
-- The picker is an ARIA listbox. Its interface language, label and name for no language are signals, so that it
+- The picker is an ARIA listbox, searched by a combobox above it that holds the focus while the list is open: the
+  popup prevents every mousedown in it but the box's (scrollbars still work) and passes any focus on to the box. A
+  search finds a language by a substring of any of its names in any language, ignoring case and accents, so short
+  ones find much (Vietnamese's `tiếng` puts `eng` in every name); the one made active is the first whose name shown
+  begins with it. Keys composing text (an input method's) are left alone. Hovering highlights an option only for a
+  mousemove with movement, as Safari fires a still one when the arrow keys scroll the list under the pointer. Its interface language, label and name for no language are signals, so that it
   stays mounted (and keeps the focus) when the interface changes language; it never sits in a `child <--` that the
   choice rebuilds. Its stylesheet is added on mounting, once, first in the page's head, each rule of one class: never
   `:where()`, whose zero specificity loses to element resets (Tailwind's `button`, Bootstrap's `ul`), while any later
-  class rule of the app's still wins. Colours are `--megalingual-*` custom properties defaulting to system colours,
+  class rule of the app's still wins; the search box's own `:focus` rule outranks an app's `input:focus` (Code
+  Switch's), whose ring would sit inside the search row's border. Colours are `--megalingual-*` custom properties defaulting to system colours,
   and the active option keeps an outline (a background tint alone is too faint, and lost in forced colours). Every
   name shown, the button's too, carries its language's `lang` and `dir`. Everything touching the browser's `Intl`
   falls back to a plain rule where it is missing.

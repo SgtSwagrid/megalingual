@@ -9,12 +9,14 @@ import scala.scalajs.js
 /**
   * A picker of languages: a button showing the chosen one, opening a list of
   * those offered, each with its flag and its names, varieties beneath the
-  * languages they are varieties of.
+  * languages they are varieties of, under a box searching them.
   *
-  * It is an ARIA listbox: arrow keys, Home and End move through it, a letter
-  * moves to the next language either of whose names begins with it (ignoring
-  * accents), Enter or Space chooses, and Escape, Tab or a click elsewhere
-  * closes it.
+  * It is an ARIA listbox, searched by a combobox above it that keeps the focus
+  * while the list is open, so that whatever is typed is searched for. The list
+  * keeps the languages any of whose names, in any language, holds what was
+  * typed, ignoring case and accents. Arrow keys, Home and End move through it,
+  * Enter chooses, and Escape, Tab or a click elsewhere closes it. A letter
+  * typed on the button opens the list, searching for it.
   *
   * The interface's language and the label are signals, so that the picker stays
   * where it is, and keeps the focus, when the interface changes language.
@@ -68,7 +70,7 @@ object LanguagePicker:
     )
     : HtmlElement = Picker(
     in.map(Naming(_, ownFirst, none = "")),
-    naming => choices(languages, naming),
+    (naming, query) => choices(languages, naming, query),
     chosen.map(Some(_)),
     choose.contracollect { case Some(language) => language },
     label,
@@ -119,7 +121,9 @@ object LanguagePicker:
     )
     : HtmlElement = Picker(
     in.combineWith(none).map((in, none) => Naming(in, ownFirst, none)),
-    naming => Choice(None, 0) :: choices(languages, naming),
+    (naming, query) =>
+      Option.when(naming.finds(None, query))(Choice(None, 0)).toList :::
+        choices(languages, naming, query),
     chosen,
     choose,
     label,
@@ -159,7 +163,7 @@ object LanguagePicker:
     def asideIn(language: Language): Language =
       if ownFirst then in else language
 
-    /** Whether either of a choice's names begins with what was typed. */
+    /** Whether either of a choice's names shown begins with what was typed. */
     def begins
       (
         language: Option[Language],
@@ -168,6 +172,16 @@ object LanguagePicker:
       : Boolean = (lead(language) :: language.toList.flatMap(aside)).exists(
       name => folded(name).startsWith(folded(typed)),
     )
+
+    /** Whether any of a choice's names, in any language, holds what was typed. */
+    def finds
+      (
+        language: Option[Language],
+        typed: String,
+      )
+      : Boolean = language
+      .fold(List(none))(language => Language.values.toList.map(language.name))
+      .exists(name => folded(name).contains(folded(typed)))
 
   /** Text in lower case without its accents (`Čeština` as `cestina`). */
   private def folded(text: String): String = text
@@ -178,17 +192,20 @@ object LanguagePicker:
     .toLowerCase
 
   /**
-    * The languages as a tree, each with its depth: a variety follows its
-    * nearest offered ancestor, one level deeper, and siblings are sorted by
-    * their leading names.
+    * The languages found by what was typed, as a tree, each with its depth: a
+    * variety follows its nearest ancestor found, one level deeper, and siblings
+    * are sorted by their leading names.
     */
   private[laminar] def choices
     (
       languages: List[Language],
       naming: Naming,
+      query: String,
     )
     : List[Choice] =
-    val offered  = languages.distinct
+    val offered = languages
+      .distinct
+      .filter(language => naming.finds(Some(language), query))
     val byParent = offered.groupBy(_.ancestors.find(offered.contains))
     def beneath(parent: Option[Language], depth: Int): List[Choice] = Intl
       .sorted(
@@ -200,6 +217,25 @@ object LanguagePicker:
       )
     beneath(None, 0)
 
+  /**
+    * The index of the choice made active: the chosen one while nothing is
+    * typed, else the first one of whose names shown begins with what was, else
+    * the first.
+    */
+  private[laminar] def likeliest
+    (
+      found: List[Choice],
+      naming: Naming,
+      query: String,
+      chosen: Option[Language],
+    )
+    : Int = found
+    .indexWhere(choice =>
+      if query.isEmpty then choice.language == chosen
+      else naming.begins(choice.language, query),
+    )
+    .max(0)
+
   /** How many pickers there have been, to give each's elements their own ids. */
   private var pickers = 0
 
@@ -210,12 +246,12 @@ object LanguagePicker:
     *   How the choices are named, as the interface's language changes.
     *
     * @param offer
-    *   The choices, named and ordered.
+    *   The choices found by what was typed, named and ordered.
     */
   private final class Picker
     (
       namings: Signal[Naming],
-      offer: Naming => List[Choice],
+      offer: (Naming, String) => List[Choice],
       chosen: Signal[Option[Language]],
       choose: Observer[Option[Language]],
       label: Signal[String],
@@ -229,6 +265,7 @@ object LanguagePicker:
     private val active  = Var(0)
     private val current = Var(Option.empty[Language])
     private val choices = Var(List.empty[Choice])
+    private val shown   = choices.signal.combineWith(active.signal)
 
     // In step with `namings` from mounting on, before which nothing reads it.
     private val naming = Var(Naming(Language.English, ownFirst = false, ""))
@@ -258,6 +295,10 @@ object LanguagePicker:
       onKeyDown
         .filter(event => opening(event.key) && !open.now())
         .preventDefault --> (_ => show()),
+      // Not prevented, so that the letter is typed into the search, now focused.
+      onKeyDown.filter(event =>
+        typed(event) && !opening(event.key) && !open.now(),
+      ) --> (_ => show()),
     )
 
     /** The picker. */
@@ -272,7 +313,7 @@ object LanguagePicker:
           !root.ref.contains(event.target.asInstanceOf[dom.Node]),
         ) --> (_ => if open.now() then close(refocus = false)),
       ),
-      child.maybe <-- open.signal.map(Option.when(_)(list(naming.now()))),
+      child.maybe <-- open.signal.map(Option.when(_)(popup())),
     )
 
     /** The chosen language's flag, named for screen readers if not beside it. */
@@ -298,10 +339,22 @@ object LanguagePicker:
       Set("ArrowDown", "ArrowUp", "Enter", " ")(key)
 
     private def show(): Unit =
-      val offered = offer(naming.now())
-      choices.set(offered)
-      active.set(offered.indexWhere(_.language == current.now()).max(0))
+      search("")
       open.set(true)
+
+    /** Lists the choices found by what was typed, the likeliest active. */
+    private def search(typed: String): Unit =
+      val query = typed.trim
+      val found = offer(naming.now(), query)
+      Var.set(
+        choices -> found,
+        active  -> likeliest(
+          found,
+          naming.now(),
+          query,
+          current.now(),
+        ),
+      )
 
     private def close(refocus: Boolean): Unit =
       open.set(false)
@@ -311,23 +364,60 @@ object LanguagePicker:
       close(refocus = true)
       choose.onNext(language)
 
-    private def list(naming: Naming): HtmlElement = ul(
-      idAttr   := s"$id-list",
-      cls      := "megalingual-list",
-      role     := "listbox",
-      tabIndex := -1,
+    /**
+      * The list beneath its search, which keeps the focus whatever else in the
+      * popup is clicked or focused, so that all typed there is searched for.
+      */
+    private def popup(): HtmlElement =
+      val box = searchBox()
+      div(
+        cls := "megalingual-popup",
+        onMouseDown -->
+          (event => if event.target != box.ref then event.preventDefault()),
+        eventProp[dom.FocusEvent]("focusin").filter(_.target != box.ref) -->
+          (_ => box.ref.focus()),
+        eventProp[dom.FocusEvent]("focusout") --> (event => left(event)),
+        div(
+          cls := "megalingual-search",
+          Magnifier(),
+          box,
+        ),
+        list(),
+        // As wide as all the choices, so as not to narrow as they are searched.
+        onMountCallback(context =>
+          val popup = context.thisNode.ref
+          popup.style.width = s"${ popup.getBoundingClientRect().width }px",
+        ),
+      )
+
+    private def searchBox(): Input = input(
+      // No `type`, so that no app's rule for `input[type=text]` reaches it.
+      cls               := "megalingual-input",
+      role              := "combobox",
+      aria.autoComplete := "list",
+      aria.expanded     := true,
+      aria.controls     := s"$id-list",
+      autoComplete      := "off",
+      spellCheck        := false,
       aria.label <-- label,
-      aria.activeDescendant <-- active.signal.map(activeId),
+      aria.activeDescendant <-- shown.map(activeId),
       onMountCallback(context => context.thisNode.ref.focus()),
-      active.signal --> (index => reveal(s"$id-$index")),
+      onInput.mapToValue --> (typed => search(typed)),
       onKeyDown --> (event => keyed(event)),
-      eventProp[dom.FocusEvent]("focusout") --> (event => left(event)),
-      choices.now().zipWithIndex.map(option(naming)),
+    )
+
+    private def list(): HtmlElement = ul(
+      idAttr := s"$id-list",
+      cls    := "megalingual-list",
+      role   := "listbox",
+      aria.label <-- label,
+      children <-- choices.signal.map(_.zipWithIndex.map(option(naming.now()))),
+      shown.map((_, index) => s"$id-$index") --> (id => reveal(id)),
     )
 
     /** The active choice's id, or none in an empty list. */
-    private def activeId(index: Int): String =
-      if choices.now().isEmpty then null else s"$id-$index"
+    private def activeId(found: List[Choice], index: Int): String =
+      if found.isEmpty then null else s"$id-$index"
 
     /** Closes the list once focus leaves the picker, as by Tab. */
     private def left(event: dom.FocusEvent): Unit = Option(event.relatedTarget)
@@ -345,7 +435,9 @@ object LanguagePicker:
       cls("megalingual-option-active") <-- active.signal.map(_ == index),
       aria.selected <-- chosen.map(_ == choice.language),
       styleProp[String]("--megalingual-depth") := choice.depth.toString,
-      onMouseMove --> (_ => active.set(index)),
+      // Only a pointer that moves, not Safari's still one, as the list scrolls
+      // under it by the arrow keys, which would snap the choice back to it.
+      onMouseMove.filter(moved) --> (_ => active.set(index)),
       onClick --> (_ => pick(choice.language)),
       flag(choice.language, alt = None),
       choice.language match
@@ -368,13 +460,17 @@ object LanguagePicker:
           ))
           .toList
 
-    /** Moves through the list, chooses or closes, by the key pressed. */
+    /**
+      * Moves through the list, chooses or closes, by the key pressed, leaving
+      * the search any other key.
+      */
     private def keyed(event: dom.KeyboardEvent): Unit = event.key match
-      case "ArrowDown"   => move(event, active.now() + 1)
-      case "ArrowUp"     => move(event, active.now() - 1)
-      case "Home"        => move(event, 0)
-      case "End"         => move(event, choices.now().size - 1)
-      case "Enter" | " " =>
+      case _ if composing(event) => ()
+      case "ArrowDown"           => move(event, active.now() + 1)
+      case "ArrowUp"             => move(event, active.now() - 1)
+      case "Home"                => move(event, 0)
+      case "End"                 => move(event, choices.now().size - 1)
+      case "Enter"               =>
         event.preventDefault()
         choices
           .now()
@@ -385,23 +481,25 @@ object LanguagePicker:
         event.preventDefault()
         event.stopPropagation()
         close(refocus = true)
-      case "Tab"               => close(refocus = false)
-      case key if typed(event) => next(key).foreach(move(event, _))
-      case _                   => ()
+      case "Tab" => close(refocus = false)
+      case _     => ()
 
     private def move(event: dom.KeyboardEvent, index: Int): Unit =
       event.preventDefault()
       active.set(index.min(choices.now().size - 1).max(0))
 
-    /** The next choice after the active one, wrapping round, begun by `key`. */
-    private def next(key: String): Option[Int] =
-      val offered = choices.now()
-      (1 to offered.size)
-        .map(step => (active.now() + step) % offered.size)
-        .find(index => naming.now().begins(offered(index).language, key))
+  private def moved(event: dom.MouseEvent): Boolean = event.movementX != 0 ||
+    event.movementY != 0
 
   private def typed(event: dom.KeyboardEvent): Boolean =
     event.key.length == 1 && !event.ctrlKey && !event.metaKey && !event.altKey
+
+  /**
+    * Whether a key is the input method's, composing text (as Japanese is
+    * typed), which Safari marks only by its code once composing ends.
+    */
+  private def composing(event: dom.KeyboardEvent): Boolean =
+    event.isComposing || event.keyCode == 229
 
   /**
     * A name in its own language, inside a span keeping the row's direction, so
