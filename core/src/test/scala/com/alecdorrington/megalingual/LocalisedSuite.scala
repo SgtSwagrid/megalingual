@@ -118,6 +118,12 @@ class LocalisedSuite extends FunSuite:
         .negotiate(None, fromTags(List("de-CH"))),
       SwissStandardGerman,
     )
+    assertEquals(
+      Localised
+        .only(GermanGerman, SwissGerman)
+        .negotiate(None, fromTags(List("de-CH", "de"))),
+      SwissGerman,
+    )
 
   test(
     "What the app has is found as the language is read, made only once it is read",

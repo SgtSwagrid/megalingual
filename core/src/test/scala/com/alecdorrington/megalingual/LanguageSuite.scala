@@ -70,6 +70,9 @@ class LanguageSuite extends FunSuite:
       "pt-AO"              -> Some(EuropeanPortuguese),
       "zh-Hant-HK"         -> Some(Cantonese),
       "zh-MO"              -> Some(Cantonese),
+      "zh-HK"              -> Some(Cantonese),
+      "yue"                -> Some(Cantonese),
+      "zh-TW"              -> Some(TaiwaneseChinese),
       "zh-Hant"            -> Some(TraditionalChinese),
       "zh-Hant-TW"         -> Some(TaiwaneseChinese),
       "zh-Hans-SG"         -> Some(Chinese),
@@ -101,6 +104,22 @@ class LanguageSuite extends FunSuite:
     assertEquals(
       Cantonese.lineage,
       List(Cantonese, TraditionalChinese, Chinese),
+    )
+    assertEquals(
+      SwissGerman.lineage,
+      List(
+        SwissGerman,
+        GermanOfSwitzerland,
+        German,
+      ),
+    )
+    assertEquals(
+      SwissStandardGerman.lineage,
+      List(
+        SwissStandardGerman,
+        GermanOfSwitzerland,
+        German,
+      ),
     )
     for language <- languages do
       assert(language.ancestors.forall(ancestor => language.within(ancestor)))
@@ -157,3 +176,7 @@ class LanguageSuite extends FunSuite:
       Some(SwissStandardGerman),
     )
     assertEquals(KeyDecoder[Language].apply("no"), None)
+    assertEquals(
+      Decoder[Language].decodeJson(Json.fromString("de-CH")),
+      Right(GermanOfSwitzerland),
+    )
