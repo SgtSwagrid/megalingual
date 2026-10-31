@@ -15,7 +15,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>What an app has in each language it supports, such as its interface's text. A language outside them is read in the nearest one: its first supported variety, else one in the same script, else its parent's nearest, else the default.</p>
+  <p>What an app has in each language it supports, such as its interface's text. A language outside them is read in the nearest one: its first supported variety, else its parent's nearest, else the default.</p>
   <p>The languages are a partial function's domain, so that an app names only those it supports, never every <a href="Language.html">Language</a>, and what it has in one is made only once that one is read.</p>
  </div>
  <section id="attributes">
@@ -157,11 +157,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The supported languages and every language two of them are varieties of, in declared order, as a picker offers them: a broader language is read in its <a href="Localised.html#nearest-fffff087">nearest</a> supported one. A broader language with one supported variety would only offer it twice.</p>
+             <p>The supported languages and every language with two varieties holding them, in declared order, as a picker offers them: a broader language is read in its <a href="Localised.html#nearest-fffff087">nearest</a> supported one. A broader language with one such variety would only offer it twice.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The supported languages and every language two of them are varieties of, in declared order, as a picker offers them: a broader language is read in its <a href="Localised.html#nearest-fffff087">nearest</a> supported one. A broader language with one supported variety would only offer it twice.</p>
+              <p>The supported languages and every language with two varieties holding them, in declared order, as a picker offers them: a broader language is read in its <a href="Localised.html#nearest-fffff087">nearest</a> supported one. A broader language with one such variety would only offer it twice.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -185,11 +185,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Finds the supported language a language is read in: itself, else its first supported variety, else one in the same script (traditional Chinese for Cantonese), else its parent's nearest.</p>
+             <p>Finds the supported language a language is read in: itself, else its first supported variety, else its parent's nearest, so that a variety is read in its siblings before its parent's siblings (Cantonese in Taiwan's traditional Chinese before simplified Chinese).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Finds the supported language a language is read in: itself, else its first supported variety, else one in the same script (traditional Chinese for Cantonese), else its parent's nearest.</p>
+              <p>Finds the supported language a language is read in: itself, else its first supported variety, else its parent's nearest, so that a variety is read in its siblings before its parent's siblings (Cantonese in Taiwan's traditional Chinese before simplified Chinese).</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -225,11 +225,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Chooses the language a reader reads in. Their choice comes first, read in its <a href="Localised.html#nearest-fffff087">nearest</a> supported language. Then each of their preferences in turn, if it or a variety of it is supported, before any is read in another of the same script or its parent's, so that a language the reader names is never passed over. A broader language is read in a variety the reader also prefers (English is American English to a reader preferring <code>en-US</code>). Else the default.</p>
+             <p>Chooses the language a reader reads in. Their choice comes first, read in its <a href="Localised.html#nearest-fffff087">nearest</a> supported language. Then each of their preferences in turn, if it or a variety of it is supported, before any is read in its parent's, so that a language the reader names is never passed over. A broader language is read in a variety the reader also prefers (English is American English to a reader preferring <code>en-US</code>). Else the default.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Chooses the language a reader reads in. Their choice comes first, read in its <a href="Localised.html#nearest-fffff087">nearest</a> supported language. Then each of their preferences in turn, if it or a variety of it is supported, before any is read in another of the same script or its parent's, so that a language the reader names is never passed over. A broader language is read in a variety the reader also prefers (English is American English to a reader preferring <code>en-US</code>). Else the default.</p>
+              <p>Chooses the language a reader reads in. Their choice comes first, read in its <a href="Localised.html#nearest-fffff087">nearest</a> supported language. Then each of their preferences in turn, if it or a variety of it is supported, before any is read in its parent's, so that a language the reader names is never passed over. A broader language is read in a variety the reader also prefers (English is American English to a reader preferring <code>en-US</code>). Else the default.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
