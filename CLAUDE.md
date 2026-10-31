@@ -21,7 +21,7 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   in its case, and its flag (`Flag.of`, SVG markup), plural rule (`Plural.of`) and name in every language (`names/`)
   each in a match of its own, in its type's companion where it has one, so that code using none of them links none, and a flag is drawn only when shown. Those
   matches have no wildcard, so that a language added breaks the build until every fact of it is written (CI compiles
-  with `-Werror`); `claims` and `akin` list only the exceptions. Apps must never match on every language: they name
+  with `-Werror`); `claims` lists only the exceptions. Apps must never match on every language: they name
   those they support in a `Localised`, whose partial function's domain is the set and whose values are made only
   when read.
 - Every name is written by hand (agents, not a generator from CLDR), one `In<Language>` object per language named in,
@@ -29,13 +29,13 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   share one object, and one differing in a few overrides them and falls back to the object it overrides
   (`InEuropeanPortuguese` to `InPortuguese`, `InCantonese`, Hong Kong's, to `InTraditionalChinese`, Taiwan's). The `add-language` skill (`.claude/skills/`) says how to add a language.
 - `Localised` reads a language outside the set in its nearest supported one: itself, its first supported variety,
-  else a kindred one, in the same script or of the same readers (`akin`, which goes both ways, Cantonese and
-  traditional Chinese, Swiss German and Swiss Standard German, and serves only `Localised`), else its parent's
-  nearest, else the default. `negotiate` takes the reader's choice first, then each
-  preference that is supported itself or by a variety, and only then reads any in another (`nearest`), so a
-  language the reader names is never passed over for a sibling or a kindred one; a broader language is read
-  in a variety they also prefer. `listed` adds a broader language only
-  where two of its varieties are supported.
+  else its parent's nearest, else the default. The tree alone says which languages read each other best: varieties
+  whose readers do share a parent of their own (Taiwan's and Hong Kong's under `zh-Hant`, Swiss Standard German and
+  Swiss German under `de-CH`), so each is read in the other before the rest. `negotiate` takes the reader's choice
+  first, then each preference that is supported itself or by a variety, and only then reads any in another
+  (`nearest`), so a language the reader names is never passed over for a sibling; a broader language is read in a
+  variety they also prefer. `listed` adds a broader language only where two of its varieties are, or hold,
+  supported ones.
 - No backwards compatibility: codes and formats change freely, and nothing reads superseded ones. Tag matching
   (`fromTag`, `claims`) serves what browsers send now, not old data.
 - The picker is an ARIA listbox. Its interface language, label and name for no language are signals, so that it

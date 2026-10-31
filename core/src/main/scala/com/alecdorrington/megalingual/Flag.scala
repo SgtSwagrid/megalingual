@@ -23,13 +23,13 @@ object Flag:
 
   /**
     * The flag of a language, drawn by hand. A language spoken in one country
-    * takes its flag; one whose varieties are spoken in different countries,
-    * which no one country's flag stands for, a tile of its code. A flag is
-    * drawn only when it is first shown, so code that shows none links none.
+    * takes its flag; one with varieties, a tile of its code, telling it apart
+    * from them. A flag is drawn only when it is first shown, so code that shows
+    * none links none.
     */
   private[megalingual] def of(language: Language): Flag = language match
-    case Chinese | English | German | Portuguese | Spanish =>
-      tile(language.code.map(_.toUpper))
+    case Chinese | TraditionalChinese | English | German | GermanOfSwitzerland |
+      Portuguese | Spanish => tile(language.code.map(_.toUpper))
     case Arabic => drawn(
         """<rect width="60" height="40" fill="#006c35"/>""" +
           """<path d="M16,17 Q20,12 24,16 T32,16 T40,15 T44,14" fill="none" """ +
@@ -65,7 +65,7 @@ object Flag:
           star(24, 8, 2, "#ffff00") + star(24, 14, 2, "#ffff00") +
           star(20, 18, 2, "#ffff00"),
       )
-    case TraditionalChinese => drawn(
+    case TaiwaneseChinese => drawn(
         """<rect width="60" height="40" fill="#fe0000"/>""" +
           """<rect width="30" height="20" fill="#000095"/>""" + star(
             15,
@@ -426,14 +426,16 @@ object Flag:
 
   /**
     * Makes a tile of a short text, such as a language's code, in the device's
-    * own typeface: two capitals fit.
+    * own typeface: two capitals fit at full size, and more are shrunk to fit.
     */
-  private def tile(text: String): Flag = drawn(
-    """<rect width="60" height="40" fill="#e4e7ec"/>""" +
-      """<text x="30" y="28" text-anchor="middle" """ +
-      """font-family="system-ui,sans-serif" font-size="22" """ +
-      s"""font-weight="700" fill="#344054">$text</text>""",
-  )
+  private def tile(text: String): Flag =
+    val size = rounded(math.min(22, 54 / (0.66 * text.length)))
+    drawn(
+      """<rect width="60" height="40" fill="#e4e7ec"/>""" +
+        s"""<text x="30" y="${ rounded(20 + 0.36 * size) }" """ +
+        """text-anchor="middle" font-family="system-ui,sans-serif" """ +
+        s"""font-size="$size" font-weight="700" fill="#344054">$text</text>""",
+    )
 
   private lazy val india: Flag = drawn(
     """<rect width="60" height="40" fill="#ffffff"/>""" +
