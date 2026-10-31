@@ -379,7 +379,7 @@ object LanguagePicker:
         eventProp[dom.FocusEvent]("focusout") --> (event => left(event)),
         div(
           cls := "megalingual-search",
-          magnifier,
+          Magnifier(),
           box,
         ),
         list(),
@@ -500,19 +500,6 @@ object LanguagePicker:
     */
   private def composing(event: dom.KeyboardEvent): Boolean =
     event.isComposing || event.keyCode == 229
-
-  /** A magnifying glass, marking the search. */
-  private def magnifier: SvgElement = svg.svg(
-    cls               := "megalingual-search-icon",
-    aria.hidden       := true,
-    svg.viewBox       := "0 0 16 16",
-    svg.fill          := "none",
-    svg.stroke        := "currentColor",
-    svg.strokeWidth   := "1.75",
-    svg.strokeLineCap := "round",
-    svg.circle(svg.cx := "7", svg.cy := "7", svg.r := "4.75"),
-    svg.path(svg.d    := "m10.5 10.5 3.5 3.5"),
-  )
 
   /**
     * A name in its own language, inside a span keeping the row's direction, so
