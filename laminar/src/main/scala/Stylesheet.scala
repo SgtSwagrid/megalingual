@@ -63,29 +63,68 @@ private object Stylesheet:
     |  clip-path: inset(50%);
     |  white-space: nowrap;
     |}
-    |.megalingual-list {
+    |.megalingual-popup {
     |  position: absolute;
     |  top: calc(100% + 4px);
     |  inset-inline-start: 0;
     |  z-index: 20;
+    |  display: flex;
+    |  flex-direction: column;
     |  box-sizing: border-box;
     |  width: max-content;
     |  min-width: max(100%, 12rem);
     |  max-width: calc(100vw - 2rem);
     |  max-height: min(26rem, calc(100vh - 5rem));
-    |  margin: 0;
-    |  padding: 0.375rem;
-    |  overflow: hidden auto;
-    |  overscroll-behavior: contain;
-    |  list-style: none;
+    |  overflow: hidden;
     |  color: var(--megalingual-text, CanvasText);
     |  background: var(--megalingual-surface, Canvas);
     |  border: 1px solid $border;
     |  border-radius: var(--megalingual-radius, 6px);
     |  box-shadow: var(--megalingual-shadow, 0 8px 24px rgb(0 0 0 / 0.16));
     |}
-    |.megalingual-list:focus {
+    |.megalingual-search {
+    |  display: flex;
+    |  flex: none;
+    |  align-items: center;
+    |  gap: 0.5em;
+    |  margin: 0.375rem 0.375rem 0;
+    |  padding: 0.375em 0.625em;
+    |  font-size: 0.875em;
+    |  border: 1px solid $border;
+    |  border-radius: calc(var(--megalingual-radius, 6px) - 2px);
+    |  cursor: text;
+    |}
+    |.megalingual-search:focus-within {
+    |  border-color: $accent;
+    |}
+    |.megalingual-search-icon {
+    |  flex: none;
+    |  width: 1em;
+    |  height: 1em;
+    |  opacity: 0.6;
+    |}
+    |.megalingual-input {
+    |  flex: 1 1 0;
+    |  width: 0;
+    |  min-width: 0;
+    |  margin: 0;
+    |  padding: 0;
+    |  font: inherit;
+    |  color: inherit;
+    |  background: none;
+    |  border: none;
+    |  border-radius: 0;
     |  outline: none;
+    |  box-shadow: none;
+    |}
+    |.megalingual-list {
+    |  flex: 1 1 auto;
+    |  min-height: 0;
+    |  margin: 0;
+    |  padding: 0.375rem;
+    |  overflow: hidden auto;
+    |  overscroll-behavior: contain;
+    |  list-style: none;
     |}
     |.megalingual-option {
     |  display: flex;
@@ -135,6 +174,9 @@ private object Stylesheet:
     |@media (forced-colors: active) {
     |  .megalingual-option-active {
     |    outline-color: Highlight;
+    |  }
+    |  .megalingual-search:focus-within {
+    |    border-color: Highlight;
     |  }
     |}
     |""".stripMargin
