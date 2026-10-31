@@ -48,7 +48,8 @@ interface's text. A language outside them is read in the nearest one: a variety 
 one (traditional Chinese for Cantonese, Swiss Standard German for Swiss German), else its parent's
 nearest, else the default. A reader's language is negotiated from
 their choice and their browser's preferences, and the picker offers the supported languages, with
-their flags and names, varieties beneath the languages they are varieties of:
+their flags and names, varieties beneath the languages they are varieties of, searched by their names
+in any language:
 
 ```scala
 import com.alecdorrington.megalingual.*
