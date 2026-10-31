@@ -26,7 +26,8 @@ import scala.scalajs.js
   * resets (Tailwind's, Bootstrap's) and any later rule of the app's overrides
   * them. It does not reach into a shadow root. Its colours are custom
   * properties: `--megalingual-text`, `-surface`, `-border`, `-accent`,
-  * `-active`, `-radius` and `-shadow`, by default the system's.
+  * `-active`, `-scrollbar`, `-radius` and `-shadow`, by default the system's.
+  * The list's scrollbar is a slim pill, by default the text faded.
   */
 object LanguagePicker:
 

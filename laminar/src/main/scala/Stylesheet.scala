@@ -21,10 +21,24 @@ private object Stylesheet:
       style.textContent = css
       head.prepend(style)
 
+  private val text = "var(--megalingual-text, CanvasText)"
+
   private val border =
     "var(--megalingual-border, color-mix(in srgb, CanvasText 22%, transparent))"
 
   private val accent = "var(--megalingual-accent, LinkText)"
+
+  /**
+    * The scrollbar's thumb, by default the text faded, so that it suits the
+    * surface the app gives the popup, which the browser's own scrollbar, light
+    * unless the page declares a dark `color-scheme`, does not. Chromium and
+    * Safari draw it as a pill, with no arrows, by `::-webkit-scrollbar`, which
+    * Chromium ignores wherever `scrollbar-color` is set, so that is set only
+    * for Firefox, which lacks the pseudo-elements. The list resets it, which it
+    * would otherwise inherit from a page that sets its own.
+    */
+  private val thumb =
+    s"var(--megalingual-scrollbar, color-mix(in srgb, $text 35%, transparent))"
 
   private val css = s"""
     |.megalingual-picker {
@@ -40,7 +54,7 @@ private object Stylesheet:
     |  margin: 0;
     |  padding: 0.375em 0.625em;
     |  font: inherit;
-    |  color: var(--megalingual-text, CanvasText);
+    |  color: $text;
     |  background: var(--megalingual-surface, Canvas);
     |  border: 1px solid $border;
     |  border-radius: var(--megalingual-radius, 6px);
@@ -76,7 +90,7 @@ private object Stylesheet:
     |  max-width: calc(100vw - 2rem);
     |  max-height: min(26rem, calc(100vh - 5rem));
     |  overflow: hidden;
-    |  color: var(--megalingual-text, CanvasText);
+    |  color: $text;
     |  background: var(--megalingual-surface, Canvas);
     |  border: 1px solid $border;
     |  border-radius: var(--megalingual-radius, 6px);
@@ -128,7 +142,26 @@ private object Stylesheet:
     |  padding: 0.375rem;
     |  overflow: hidden auto;
     |  overscroll-behavior: contain;
+    |  scrollbar-width: auto;
+    |  scrollbar-color: auto;
     |  list-style: none;
+    |}
+    |.megalingual-list::-webkit-scrollbar {
+    |  width: 10px;
+    |}
+    |.megalingual-list::-webkit-scrollbar-thumb {
+    |  background: $thumb padding-box;
+    |  border: 2px solid transparent;
+    |  border-radius: 5px;
+    |}
+    |.megalingual-list::-webkit-scrollbar-thumb:hover {
+    |  background-color: color-mix(in srgb, $thumb 70%, $text);
+    |}
+    |@supports not selector(::-webkit-scrollbar) {
+    |  .megalingual-list {
+    |    scrollbar-width: thin;
+    |    scrollbar-color: $thumb transparent;
+    |  }
     |}
     |.megalingual-option {
     |  display: flex;
