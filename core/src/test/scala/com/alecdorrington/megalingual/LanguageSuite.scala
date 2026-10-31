@@ -66,6 +66,8 @@ class LanguageSuite extends FunSuite:
       "en_us"              -> Some(AmericanEnglish),
       "en-US-u-ca-gregory" -> Some(AmericanEnglish),
       "de-AT"              -> Some(German),
+      "de-LI"              -> Some(SwissStandardGerman),
+      "gsw-CH"             -> Some(SwissGerman),
       "es-MX"              -> Some(LatinAmericanSpanish),
       "pt-AO"              -> Some(EuropeanPortuguese),
       "zh-Hant-HK"         -> Some(Cantonese),
@@ -135,20 +137,20 @@ class LanguageSuite extends FunSuite:
 
   test("A language is kept as its code, a map's key too"):
     assertEquals(
-      Encoder[Language].apply(SwissGerman),
+      Encoder[Language].apply(SwissStandardGerman),
       Json.fromString("de-CH"),
     )
     assertEquals(
       Decoder[Language].decodeJson(Json.fromString("de-CH")),
-      Right(SwissGerman),
+      Right(SwissStandardGerman),
     )
     assert(Decoder[Language].decodeJson(Json.fromString("no")).isLeft)
     assertEquals(
-      KeyEncoder[Language].apply(SwissGerman),
+      KeyEncoder[Language].apply(SwissStandardGerman),
       "de-CH",
     )
     assertEquals(
       KeyDecoder[Language].apply("de-CH"),
-      Some(SwissGerman),
+      Some(SwissStandardGerman),
     )
     assertEquals(KeyDecoder[Language].apply("no"), None)

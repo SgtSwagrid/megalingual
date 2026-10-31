@@ -19,7 +19,7 @@ class LanguagePickerSuite extends FunSuite:
           BritishEnglish,
           English,
           AmericanEnglish,
-          SwissGerman,
+          SwissStandardGerman,
         ),
         inEnglish,
       ),
@@ -28,7 +28,7 @@ class LanguagePickerSuite extends FunSuite:
         Choice(Some(AmericanEnglish), 1),
         Choice(Some(BritishEnglish), 1),
         Choice(Some(French), 0),
-        Choice(Some(SwissGerman), 0),
+        Choice(Some(SwissStandardGerman), 0),
       ),
     )
     val languages = List(German, Japanese, French)

@@ -28,7 +28,7 @@ class LocalisedSuite extends FunSuite:
       1
     })
     assertEquals(
-      Localised.only(French, German)(SwissGerman),
+      Localised.only(French, German)(SwissStandardGerman),
       German,
     )
     assertEquals(
@@ -53,7 +53,7 @@ class LocalisedSuite extends FunSuite:
     )
 
   test(
-    "A language is read in itself, a variety, one in the same script, or its parent's nearest",
+    "A language is read in itself, a variety, a kindred one, or its parent's nearest",
   ):
     assertEquals(localised.resolve(French), French)
     assertEquals(
@@ -86,12 +86,24 @@ class LocalisedSuite extends FunSuite:
       Localised.only(SimplifiedChinese).resolve(Cantonese),
       SimplifiedChinese,
     )
+    assertEquals(
+      Localised.only(GermanGerman, SwissStandardGerman).resolve(SwissGerman),
+      SwissStandardGerman,
+    )
+    assertEquals(
+      Localised.only(GermanGerman, SwissGerman).resolve(SwissStandardGerman),
+      SwissGerman,
+    )
+    assertEquals(
+      Localised.only(GermanGerman).resolve(SwissGerman),
+      GermanGerman,
+    )
 
   test(
     "What the app has is found as the language is read, made only once it is read",
   ):
     assertEquals(localised(AmericanEnglish), "en-US")
-    assertEquals(localised(SwissGerman), "de-DE")
+    assertEquals(localised(SwissStandardGerman), "de-DE")
     assertEquals(localised(Korean), "en-GB")
     var made    = 0
     val counted = Localised(French):
@@ -103,7 +115,7 @@ class LocalisedSuite extends FunSuite:
     assertEquals(made, 1)
 
   test(
-    "A language the reader names comes before another's parent, and before one in the same script",
+    "A language the reader names comes before another's parent, and before a kindred one",
   ):
     assertEquals(
       Localised
@@ -130,7 +142,7 @@ class LocalisedSuite extends FunSuite:
       French,
     )
     assertEquals(
-      localised.negotiate(None, List(SwissGerman)),
+      localised.negotiate(None, List(SwissStandardGerman)),
       GermanGerman,
     )
     assertEquals(

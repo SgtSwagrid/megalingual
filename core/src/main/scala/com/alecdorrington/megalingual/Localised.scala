@@ -3,8 +3,7 @@ package com.alecdorrington.megalingual
 /**
   * What an app has in each language it supports, such as its interface's text.
   * A language outside them is read in the nearest one: its first supported
-  * variety, else one in the same script, else its parent's nearest, else the
-  * default.
+  * variety, else a kindred one, else its parent's nearest, else the default.
   *
   * The languages are a partial function's domain, so that an app names only
   * those it supports, never every [[Language]], and what it has in one is made
@@ -50,8 +49,9 @@ final class Localised[+A] private (
 
   /**
     * Finds the supported language a language is read in: itself, else its first
-    * supported variety, else one in the same script (traditional Chinese for
-    * Cantonese), else its parent's nearest.
+    * supported variety, else a kindred one, written in the same script or by
+    * the same readers (traditional Chinese for Cantonese, Swiss Standard German
+    * for Swiss German), else its parent's nearest.
     *
     * @param language
     *   The language.
@@ -94,9 +94,9 @@ final class Localised[+A] private (
   /**
     * Chooses the language a reader reads in. Their choice comes first, read in
     * its [[nearest]] supported language. Then each of their preferences in
-    * turn, if it or a variety of it is supported, before any is read in another
-    * of the same script or its parent's, so that a language the reader names is
-    * never passed over. A broader language is read in a variety the reader also
+    * turn, if it or a variety of it is supported, before any is read in a
+    * kindred one or its parent's, so that a language the reader names is never
+    * passed over. A broader language is read in a variety the reader also
     * prefers (English is American English to a reader preferring `en-US`). Else
     * the default.
     *

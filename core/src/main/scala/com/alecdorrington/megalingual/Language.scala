@@ -98,12 +98,15 @@ enum Language
 
   /**
     * The languages outside its tree that a reader of this one reads best after
-    * it, before its parent's: those written in the same script.
+    * it, before its parent's: those written in the same script, or by the same
+    * readers.
     */
   private[megalingual] def akin: List[Language] = this match
-    case Cantonese          => List(TraditionalChinese)
-    case TraditionalChinese => List(Cantonese)
-    case _                  => Nil
+    case Cantonese           => List(TraditionalChinese)
+    case TraditionalChinese  => List(Cantonese)
+    case SwissStandardGerman => List(SwissGerman)
+    case SwissGerman         => List(SwissStandardGerman)
+    case _                   => Nil
 
   /** Whether a BCP 47 tag is this language's code or one it claims. */
   private def tagged(tag: String): Boolean = (code :: claims).exists(
@@ -139,8 +142,8 @@ enum Language
       ).map("es-" + _)
     case EuropeanPortuguese => List("AO", "CV", "GW", "MO", "MZ", "ST", "TL")
         .map("pt-" + _)
-    case SwissGerman => List("de-LI")
-    case Cantonese   => List(
+    case SwissStandardGerman => List("de-LI")
+    case Cantonese           => List(
         "zh-MO",
         "zh-Hant-HK",
         "zh-Hant-MO",
@@ -245,9 +248,20 @@ enum Language
     )
 
   /** Swiss Standard German, written without `ß`. */
-  case SwissGerman
+  case SwissStandardGerman
     extends Language(
       "de-CH",
+      LeftToRight,
+      parent = Some(German),
+    )
+
+  /**
+    * The Alemannic dialects of Switzerland, under `gsw`, their own code: `de-CH`
+    * is Swiss Standard German, which their speakers mostly write instead.
+    */
+  case SwissGerman
+    extends Language(
+      "gsw",
       LeftToRight,
       parent = Some(German),
     )
