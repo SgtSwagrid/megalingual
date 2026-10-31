@@ -29,10 +29,11 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   share one object, and one differing in a few overrides them and falls back to the object it overrides
   (`InEuropeanPortuguese` to `InPortuguese`, `InCantonese`, Hong Kong's, to `InTraditionalChinese`, Taiwan's). The `add-language` skill (`.claude/skills/`) says how to add a language.
 - `Localised` reads a language outside the set in its nearest supported one: itself, its first supported variety,
-  else one in the same script (`akin`, which goes both ways, Cantonese and traditional Chinese, and serves only
-  `Localised`), else its parent's nearest, else the default. `negotiate` takes the reader's choice first, then each
+  else a kindred one, in the same script or of the same readers (`akin`, which goes both ways, Cantonese and
+  traditional Chinese, Swiss German and Swiss Standard German, and serves only `Localised`), else its parent's
+  nearest, else the default. `negotiate` takes the reader's choice first, then each
   preference that is supported itself or by a variety, and only then reads any in another (`nearest`), so a
-  language the reader names is never passed over for a sibling or one in the same script; a broader language is read
+  language the reader names is never passed over for a sibling or a kindred one; a broader language is read
   in a variety they also prefer. `listed` adds a broader language only
   where two of its varieties are supported.
 - No backwards compatibility: codes and formats change freely, and nothing reads superseded ones. Tag matching

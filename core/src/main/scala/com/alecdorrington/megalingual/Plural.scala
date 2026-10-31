@@ -23,9 +23,10 @@ object Plural:
     val n = math.abs(count)
     language match
       case English | BritishEnglish | AmericanEnglish | AustralianEnglish |
-        German | GermanGerman | SwissGerman | Dutch | Danish | Swedish |
-        Norwegian | Finnish | Estonian | Greek | Hungarian | Turkish |
-        Bulgarian | Swahili | Urdu | Tamil => if n == 1 then One else Other
+        German | GermanGerman | SwissStandardGerman | SwissGerman | Dutch |
+        Danish | Swedish | Norwegian | Finnish | Estonian | Greek | Hungarian |
+        Turkish | Bulgarian | Swahili | Urdu | Tamil =>
+        if n == 1 then One else Other
       case French | Portuguese | BrazilianPortuguese =>
         if n <= 1 then One else millions(n)
       case Spanish | EuropeanSpanish | LatinAmericanSpanish | Italian |
