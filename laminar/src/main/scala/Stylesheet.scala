@@ -117,6 +117,10 @@ private object Stylesheet:
     |  outline: none;
     |  box-shadow: none;
     |}
+    |.megalingual-input:focus {
+    |  outline: none;
+    |  box-shadow: none;
+    |}
     |.megalingual-list {
     |  flex: 1 1 auto;
     |  min-height: 0;

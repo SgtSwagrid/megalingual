@@ -46,7 +46,8 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   stays mounted (and keeps the focus) when the interface changes language; it never sits in a `child <--` that the
   choice rebuilds. Its stylesheet is added on mounting, once, first in the page's head, each rule of one class: never
   `:where()`, whose zero specificity loses to element resets (Tailwind's `button`, Bootstrap's `ul`), while any later
-  class rule of the app's still wins. Colours are `--megalingual-*` custom properties defaulting to system colours,
+  class rule of the app's still wins; the search box's own `:focus` rule outranks an app's `input:focus` (Code
+  Switch's), whose ring would sit inside the search row's border. Colours are `--megalingual-*` custom properties defaulting to system colours,
   and the active option keeps an outline (a background tint alone is too faint, and lost in forced colours). Every
   name shown, the button's too, carries its language's `lang` and `dir`. Everything touching the browser's `Intl`
   falls back to a plain rule where it is missing.
