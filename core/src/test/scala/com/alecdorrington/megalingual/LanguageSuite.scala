@@ -1,8 +1,5 @@
 package com.alecdorrington.megalingual
 
-import com.alecdorrington.megalingual.Added.{
-  AustrianGerman, Esperanto, MexicanSpanish, Nameless,
-}
 import com.alecdorrington.megalingual.Direction.{LeftToRight, RightToLeft}
 import com.alecdorrington.megalingual.Language.*
 import io.circe.{Decoder, Encoder, Json, KeyDecoder, KeyEncoder}
@@ -10,7 +7,7 @@ import munit.FunSuite
 
 class LanguageSuite extends FunSuite:
 
-  private val languages = Languages.builtIn.all
+  private val languages = Language.all
 
   test("Every language names every language, and no two share a name in any"):
     for in <- languages do
@@ -22,10 +19,6 @@ class LanguageSuite extends FunSuite:
         )
         assert(name.nonEmpty, s"$language in $in")
         assertEquals(name, name.trim, s"$language in $in")
-        assert(
-          !language.called.isDefinedAt(in),
-          s"$language in $in",
-        )
       val repeated = languages
         .groupBy(_.name(in))
         .collect { case (name, named) if named.size > 1 => name -> named }
@@ -57,30 +50,6 @@ class LanguageSuite extends FunSuite:
     )
 
   test(
-    "A language added is named as the language naming it, or one it is a variety of, names it, else as it names itself there, else as in English, else in itself, else by its code",
-  ):
-    assertEquals(English.name(Esperanto), "angla")
-    assertEquals(English.title(Esperanto), "Angla")
-    assertEquals(Esperanto.name(French), "espéranto")
-    assertEquals(Esperanto.title(French), "Espéranto")
-    assertEquals(
-      AustrianGerman.name(SwissGerman),
-      "österreichisches Deutsch",
-    )
-    assertEquals(
-      AustrianGerman.name(English),
-      "Austrian German",
-    )
-    assertEquals(
-      AustrianGerman.name(Japanese),
-      "Austrian German",
-    )
-    assertEquals(French.name(Esperanto), "French")
-    assertEquals(Esperanto.name(Japanese), "Esperanto")
-    assertEquals(Nameless.name(Japanese), "en-NZ")
-    assertEquals(MexicanSpanish.name(Spanish), "es-MX")
-
-  test(
     "A language's title is its name with a capital, and Hong Kong names a few languages unlike Taiwan",
   ):
     assertEquals(English.name(English), "English")
@@ -100,20 +69,13 @@ class LanguageSuite extends FunSuite:
       Japanese.name(TaiwaneseChinese),
     )
 
-  test("Codes are distinct, and each, exactly, finds its language"):
+  test(
+    "Codes are distinct, ignoring case, and each, exactly, finds its language",
+  ):
     assertEquals(
-      languages.map(_.code).distinct.size,
+      languages.map(_.code.toLowerCase).distinct.size,
       languages.size,
     )
-    for language <- Added.languages.all do
-      assertEquals(
-        Added.languages.fromCode(language.code),
-        Some(language),
-      )
-      assertEquals(
-        Added.languages.fromTag(language.code),
-        Some(language),
-      )
     for language <- languages do
       assertEquals(
         fromCode(language.code),
@@ -155,55 +117,7 @@ class LanguageSuite extends FunSuite:
       List(AmericanEnglish, English, French),
     )
 
-  test(
-    "Languages added are found among those given, a code before a claim, and their codecs keep them",
-  ):
-    given Languages = Added.languages
-    assertEquals(
-      fromTag("de-AT-x-wien"),
-      Some(AustrianGerman),
-    )
-    assertEquals(fromTag("es-MX"), Some(MexicanSpanish))
-    assertEquals(
-      fromTag("es-AR"),
-      Some(LatinAmericanSpanish),
-    )
-    assertEquals(fromCode("eo"), Some(Esperanto))
-    assertEquals(German.children.last, AustrianGerman)
-    assert(German.descendants.contains(AustrianGerman))
-    assertEquals(roots.last, Esperanto)
-    assertEquals(
-      Decoder[Language].decodeJson(Json.fromString("de-AT")),
-      Right(AustrianGerman),
-    )
-    assertEquals(
-      KeyDecoder[Language].apply("eo"),
-      Some(Esperanto),
-    )
-    assertEquals(Language.all, Added.languages.all)
-
-  test(
-    "Megalingual's own are found where none are given, and no two languages share a code, nor lack their parent",
-  ):
-    assertEquals(fromTag("de-AT"), Some(German))
-    assertEquals(
-      fromTag("es-MX"),
-      Some(LatinAmericanSpanish),
-    )
-    assertEquals(fromCode("eo"), None)
-    assert(!German.children.contains(AustrianGerman))
-    assert(Decoder[Language].decodeJson(Json.fromString("de-AT")).isLeft)
-    assertEquals(Language.all, languages)
-    assertEquals(
-      (Languages.builtIn ++ languages ++ List(Esperanto)).all,
-      languages :+ Esperanto,
-    )
-    object Impostor extends Language.Variety("DE", of = English):
-      override lazy val flag: Flag = English.flag
-    intercept[IllegalArgumentException](Languages.builtIn ++ List(Impostor))
-    intercept[IllegalArgumentException](Languages(BritishEnglish))
-
-  test("Varieties form a tree"):
+  test("Varieties form a tree, each listed after its parent"):
     assert(BritishEnglish.within(English))
     assert(!English.within(BritishEnglish))
     assertEquals(
@@ -238,6 +152,21 @@ class LanguageSuite extends FunSuite:
     )
     for language <- languages do
       assert(language.ancestors.forall(ancestor => language.within(ancestor)))
+      for parent <- language.parent do
+        val at = languages.indexOf(parent)
+        assert(
+          at >= 0 && at < languages.indexOf(language),
+          s"$language",
+        )
+    assertEquals(
+      German.descendants,
+      List(
+        GermanGerman,
+        GermanOfSwitzerland,
+        SwissStandardGerman,
+        SwissGerman,
+      ),
+    )
 
   test("Arabic, Hebrew, Persian and Urdu are written right to left"):
     assertEquals(

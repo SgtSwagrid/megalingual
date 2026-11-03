@@ -35,7 +35,7 @@ libraryDependencies += "com.alecdorrington" %% "megalingual-web" % "{version}"
 
 _Megalingual_ knows 59 languages and varieties, as a tree (e.g. with British English beneath English), each
 with its flag, the direction it's written in (left-to-right vs. right-to-left), its plural rule, and the full matrix of language names.
-Each is an object of its own, and an app or library may add more (see [Adding languages](#adding-languages)).
+These are all the languages there are: one an app needs that _Megalingual_ lacks is added here, by a pull request.
 
 ```scala
 import com.alecdorrington.megalingual.*
@@ -128,50 +128,6 @@ speech.voice(German).flatMap:
 | `voices` | The browser's voices, each with its `language` and whether it is `local` | It waits a moment for Chromium, which lists none until first asked. A worker, as an extension's service worker is, has none. |
 | `voice(language)` | The voice that best says the language's words (`Voice.best`) | Of the language's tree, the nearest to the variety it is spoken in (German in German German, `Language.spoken`), then one on the device before one online. None where there is none of its tree. |
 | `say(text, voice)` | Says the text, done once it is said | It cuts short whatever the browser was saying. It begins in its first step, so that a program run at once from a click (as `IO`'s `syncStep` runs one) still has the reader's activation, which a browser may need to speak. Cancelled, it stops. An online voice sends the text to the browser's maker. |
-
-### Adding languages
-
-A language is an object saying all there is of it: a `Language.Root`, or a `Language.Variety`
-of another, which is written, counted and named in as its parent is unless it says otherwise.
-An app or library adds its own, and gives them, with _Megalingual_'s, wherever languages are
-looked for: finding one by its code or a browser's tag, the codecs, `Localised`, the picker
-and the browser's preferences. Where none are given, _Megalingual_'s own are.
-
-```scala
-import com.alecdorrington.megalingual.*
-import com.alecdorrington.megalingual.Direction.LeftToRight
-import com.alecdorrington.megalingual.Language.{English, French, German}
-
-object Esperanto extends Language.Root("eo", LeftToRight):
-
-  override lazy val flag: Flag = Flag.drawn(
-    """<rect width="60" height="40" fill="#009900"/>""" +
-      """<rect width="20" height="20" fill="#ffffff"/>""" +
-      Flag.star(10, 10, 6, "#009900"),
-  )
-
-  override def plurals: Plural.Rule = Plural.oneOrOther
-
-  // The names Esperanto gives languages.
-  override def names: PartialFunction[Language, String] =
-    case Esperanto => "Esperanto"
-    case English   => "angla"
-    case German    => "germana"
-
-  // Its names in languages that do not name it themselves.
-  override def called: PartialFunction[Language, String] =
-    case French => "espéranto"
-
-given Languages = Languages.builtIn ++ List(Esperanto)
-
-Language.fromTag("eo")      // Some(Esperanto)
-Esperanto.name(in = French) // "espéranto"
-German.name(in = Esperanto) // "germana"
-French.name(in = Esperanto) // "French": Esperanto does not name it, so English does
-```
-
-A language named neither by the language naming it nor by itself there is named as in English,
-else as in itself, else by its code.
 
 ## 👁️ See also
 

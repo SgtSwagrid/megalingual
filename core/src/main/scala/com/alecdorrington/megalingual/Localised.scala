@@ -7,8 +7,7 @@ package com.alecdorrington.megalingual
   *
   * The languages are a partial function's domain, so that an app names only
   * those it supports, never every [[Language]], and what it has in one is made
-  * only once that one is read. The tree they are read in is of the given
-  * [[Languages]].
+  * only once that one is read.
   *
   * @param default
   *   The language read in when nothing chooses another.
@@ -16,34 +15,30 @@ package com.alecdorrington.megalingual
   * @param values
   *   What the app has in each language it supports.
   *
-  * @param known
-  *   The languages known, whose tree a language is read in.
-  *
   * @tparam A
   *   What the app has in each language.
   */
 final class Localised[+A] private (
   val default: Language,
   values: PartialFunction[Language, A],
-  known: Languages,
 ):
 
-  /** The supported languages, in the known languages' order. */
-  val languages: List[Language] = known.all.filter(supports)
+  /** The supported languages, in [[Language.all]]'s order. */
+  val languages: List[Language] = Language.all.filter(supports)
 
   /**
     * The supported languages and every language with two varieties holding
-    * them, in the known languages' order, as a picker offers them: a broader
+    * them, in [[Language.all]]'s order, as a picker offers them: a broader
     * language is read in its [[nearest]] supported one. A broader language with
     * one such variety would only offer it twice.
     */
-  def listed: List[Language] = known
+  def listed: List[Language] = Language
     .all
     .filter(language => supports(language) || branches(language) > 1)
 
   /** The number of the language's varieties that are or hold supported ones. */
   private def branches(language: Language): Int = language
-    .children(using known)
+    .children
     .count(child => languages.exists(_.within(child)))
 
   /**
@@ -71,7 +66,7 @@ final class Localised[+A] private (
 
   /** Itself, else its first supported variety. */
   private def beneath(language: Language): Option[Language] =
-    (language :: language.descendants(using known)).find(supports)
+    (language :: language.descendants).find(supports)
 
   /**
     * Finds the supported language a language is read in: its [[nearest]], else
@@ -157,9 +152,6 @@ object Localised:
     * @param values
     *   What the app has in each language it supports.
     *
-    * @param known
-    *   The languages known, whose tree a language is read in.
-    *
     * @tparam A
     *   What the app has in each language.
     *
@@ -169,13 +161,12 @@ object Localised:
   def apply[A]
     (default: Language)
     (values: PartialFunction[Language, A])
-    (using known: Languages)
     : Localised[A] =
     require(
       values.isDefinedAt(default),
       s"The default, $default, is supported.",
     )
-    new Localised(default, values, known)
+    new Localised(default, values)
 
   /**
     * Supports the given languages, with nothing in them but themselves.
@@ -189,24 +180,17 @@ object Localised:
     * @return
     *   The languages, each giving itself.
     */
-  def only
-    (default: Language, others: Language*)
-    (using Languages)
-    : Localised[Language] =
+  def only(default: Language, others: Language*): Localised[Language] =
     val supported = others.toSet + default
     apply(default) { case language if supported(language) => language }
 
   /**
-    * Supports every language known, with nothing in them but themselves.
+    * Supports every language, with nothing in them but themselves.
     *
     * @param default
     *   The language read in when nothing chooses another.
     *
-    * @param known
-    *   The languages known.
-    *
     * @return
-    *   Every language known, each giving itself.
+    *   Every language, each giving itself.
     */
-  def all(default: Language)(using known: Languages): Localised[Language] =
-    only(default, known.all*)
+  def all(default: Language): Localised[Language] = only(default, Language.all*)
