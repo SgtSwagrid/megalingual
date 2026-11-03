@@ -1,0 +1,76 @@
+package com.alecdorrington.megalingual
+package languages
+
+import com.alecdorrington.megalingual.Direction.LeftToRight
+
+object Bulgarian extends Language.Root("bg", LeftToRight):
+
+  override lazy val flag: Flag = Flag.bands(
+    vertical = false,
+    "#ffffff",
+    "#00966e",
+    "#d62612",
+  )
+
+  override def plurals: Plural.Rule = Plural.oneOrOther
+
+  override def names: PartialFunction[Language, String] =
+    case Arabic               => "арабски"
+    case Bengali              => "бенгалски"
+    case Bulgarian            => "български"
+    case Catalan              => "каталонски"
+    case Chinese              => "китайски"
+    case SimplifiedChinese    => "китайски (опростен)"
+    case TraditionalChinese   => "китайски (традиционен)"
+    case TaiwaneseChinese     => "китайски (традиционен, Тайван)"
+    case Cantonese            => "кантонски"
+    case Croatian             => "хърватски"
+    case Czech                => "чешки"
+    case Danish               => "датски"
+    case Dutch                => "нидерландски"
+    case English              => "английски"
+    case BritishEnglish       => "британски английски"
+    case AmericanEnglish      => "американски английски"
+    case AustralianEnglish    => "австралийски английски"
+    case Estonian             => "естонски"
+    case Filipino             => "филипински"
+    case Finnish              => "фински"
+    case French               => "френски"
+    case German               => "немски"
+    case GermanGerman         => "немски (Германия)"
+    case GermanOfSwitzerland  => "немски (Швейцария)"
+    case SwissStandardGerman  => "швейцарски книжовен немски"
+    case SwissGerman          => "швейцарски немски"
+    case Greek                => "гръцки"
+    case Hebrew               => "иврит"
+    case Hindi                => "хинди"
+    case Hungarian            => "унгарски"
+    case Indonesian           => "индонезийски"
+    case Italian              => "италиански"
+    case Japanese             => "японски"
+    case Korean               => "корейски"
+    case Latvian              => "латвийски"
+    case Lithuanian           => "литовски"
+    case Malay                => "малайски"
+    case Norwegian            => "норвежки"
+    case Persian              => "персийски"
+    case Polish               => "полски"
+    case Portuguese           => "португалски"
+    case BrazilianPortuguese  => "бразилски португалски"
+    case EuropeanPortuguese   => "европейски португалски"
+    case Romanian             => "румънски"
+    case Russian              => "руски"
+    case Serbian              => "сръбски"
+    case Slovak               => "словашки"
+    case Slovenian            => "словенски"
+    case Spanish              => "испански"
+    case EuropeanSpanish      => "европейски испански"
+    case LatinAmericanSpanish => "латиноамерикански испански"
+    case Swahili              => "суахили"
+    case Swedish              => "шведски"
+    case Tamil                => "тамилски"
+    case Thai                 => "тайски"
+    case Turkish              => "турски"
+    case Ukrainian            => "украински"
+    case Urdu                 => "урду"
+    case Vietnamese           => "виетнамски"

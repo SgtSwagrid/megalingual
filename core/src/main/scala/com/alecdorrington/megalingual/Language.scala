@@ -1,7 +1,5 @@
 package com.alecdorrington.megalingual
 
-import com.alecdorrington.megalingual.Direction.{LeftToRight, RightToLeft}
-import com.alecdorrington.megalingual.names.Names
 import io.circe.{Codec, Decoder, Encoder, KeyDecoder, KeyEncoder}
 
 /**
@@ -12,33 +10,77 @@ import io.circe.{Codec, Decoder, Encoder, KeyDecoder, KeyEncoder}
   * read from a code's shape. A broader language is read in its first variety
   * where a more specific one is needed.
   *
+  * Each language is an object saying all there is of it, most simply a
+  * [[Language.Root]] or a [[Language.Variety]], which takes from its parent
+  * what it does not say. Megalingual's own are each in a file of its own in the
+  * `languages` package, [[Languages.builtIn]] lists them, and this companion
+  * holds each as a language (`Language.German`). Another library adds its own
+  * in [[Languages]] of its own, given where languages are looked for. It
+  * declares each at the top level, or within an object: within its own body,
+  * Scala matches an object nested in a class as anything, so its [[names]]
+  * would give every language its own name.
+  *
   * An app supporting only some languages says so with a [[Localised]], and
-  * never matches on every language itself, so that a language added here breaks
-  * no app's build.
-  *
-  * @param code
-  *   The language's BCP 47 tag, as specific as tells it from the others (`en`,
-  *   `en-GB`, `es-419`). A variety's need not begin with its parent's.
-  *
-  * @param direction
-  *   The direction the language is written in.
-  *
-  * @param parent
-  *   The language this is a variety of, if any, declared before it.
+  * never matches on every language itself, so that a language added breaks no
+  * app.
   */
-enum Language
-  (
-    val code: String,
-    val direction: Direction,
-    val parent: Option[Language] = None,
-  ):
+trait Language:
 
-  /** The language's flag, drawn when first shown. */
-  lazy val flag: Flag = Flag.of(this)
+  /**
+    * The language's BCP 47 tag, as specific as tells it from the others (`en`,
+    * `en-GB`, `es-419`). A variety's need not begin with its parent's.
+    */
+  def code: String
+
+  /** The language this is a variety of, if any. */
+  def parent: Option[Language]
+
+  /** The direction the language is written in. */
+  def direction: Direction
+
+  /**
+    * The language's flag. A language spoken in one country takes its flag; one
+    * with varieties, a tile of its code, telling it apart from them
+    * ([[Flag.tile]]). It is a `lazy val` or a `def`, so that it is drawn only
+    * when first shown, and code showing no flag links none.
+    */
+  def flag: Flag
+
+  /**
+    * The language's plural rule, by Unicode's CLDR cardinal rules for numbers
+    * with no fraction digits (see [[plural]]). It is a `def`, so that code
+    * counting nothing links none.
+    */
+  def plurals: Plural.Rule
+
+  /**
+    * The names the language gives languages, itself among them, each as a
+    * native writer of the language writes it mid-sentence (`anglais` in
+    * French), no two alike. A variety gives only those it gives otherwise than
+    * its parent, whose others it takes. It is a `def`, so that code naming
+    * nothing links none.
+    */
+  def names: PartialFunction[Language, String]
+
+  /**
+    * The language's own names in languages whose [[names]] lack it, as a
+    * language added outside Megalingual gives its names in Megalingual's, which
+    * cannot name it. A variety does not take its parent's. None by default.
+    */
+  def called: PartialFunction[Language, String] = PartialFunction.empty
+
+  /**
+    * The tags besides its code that choose this language where the tree would
+    * choose another, or none: `es-MX` would find Spanish, and `no` nothing.
+    * None by default.
+    */
+  def claims: List[String] = Nil
 
   /**
     * Names the language in another, as written mid-sentence there (`anglais` in
-    * French).
+    * French): as the other, or a language it is a variety of, names it, else as
+    * this names itself there ([[called]]). A language named neither way is
+    * named as in English, else as in itself, else by its code.
     *
     * @param in
     *   The language to name it in.
@@ -46,7 +88,18 @@ enum Language
     * @return
     *   A name for the language.
     */
-  def name(in: Language): String = Names(this, in)
+  final def name(in: Language): String = known(in)
+    .orElse(known(languages.English))
+    .orElse(known(this))
+    .getOrElse(code)
+
+  /** Its name in a language, as that names it, else as this names itself. */
+  private def known(in: Language): Option[String] = in
+    .lineage
+    .iterator
+    .flatMap(_.names.lift(this))
+    .nextOption()
+    .orElse(in.lineage.iterator.flatMap(called.lift).nextOption())
 
   /**
     * Names the language in another, as it begins a menu's item or a heading
@@ -58,11 +111,11 @@ enum Language
     * @return
     *   A name for the language.
     */
-  def title(in: Language): String = name(in).capitalize
+  final def title(in: Language): String = name(in).capitalize
 
   /**
-    * Finds the plural category of a whole number in the language, by Unicode's
-    * CLDR rules (`22` is [[Plural.Few]] in Polish).
+    * Finds the plural category of a whole number in the language, by its
+    * [[plurals]] (`22` is [[Plural.Few]] in Polish).
     *
     * @param count
     *   The number of things counted.
@@ -70,22 +123,27 @@ enum Language
     * @return
     *   A category, which the language words its own way.
     */
-  def plural(count: Long): Plural = Plural.of(this, count)
+  final def plural(count: Long): Plural = plurals(math.abs(count))
 
   /** The languages this is a variety of, the nearest first. */
-  def ancestors: List[Language] = parent.toList.flatMap(_.lineage)
+  final def ancestors: List[Language] = parent.toList.flatMap(_.lineage)
 
   /** This language, then each language it is a variety of, nearest first. */
-  def lineage: List[Language] = this :: ancestors
+  final def lineage: List[Language] = this :: ancestors
 
-  /** The direct varieties, in declared order, the first standing in for it. */
-  def children: List[Language] = Language
-    .values
-    .toList
+  /**
+    * The direct varieties among the given languages, in their order, the first
+    * standing in for it.
+    */
+  final def children(using languages: Languages): List[Language] = languages
+    .all
     .filter(_.parent.contains(this))
 
-  /** Every variety of this language, however deep, each before its own. */
-  def descendants: List[Language] =
+  /**
+    * Every variety of this language among the given ones, however deep, each
+    * before its own.
+    */
+  final def descendants(using Languages): List[Language] =
     children.flatMap(child => child :: child.descendants)
 
   /**
@@ -94,290 +152,128 @@ enum Language
     * @param language
     *   The broader language.
     */
-  def within(language: Language): Boolean = lineage.contains(language)
+  final def within(language: Language): Boolean = lineage.contains(language)
 
-  /** Whether a BCP 47 tag is this language's code or one it claims. */
-  private def tagged(tag: String): Boolean = (code :: claims).exists(
-    _.equalsIgnoreCase(tag),
-  )
-
-  /**
-    * The tags besides its code that choose this language where the tree would
-    * choose another, or none: `es-MX` would find Spanish, and `no` nothing.
-    */
-  private def claims: List[String] = this match
-    case LatinAmericanSpanish => List(
-        "AR",
-        "BO",
-        "CL",
-        "CO",
-        "CR",
-        "CU",
-        "DO",
-        "EC",
-        "GT",
-        "HN",
-        "MX",
-        "NI",
-        "PA",
-        "PE",
-        "PR",
-        "PY",
-        "SV",
-        "US",
-        "UY",
-        "VE",
-      ).map("es-" + _)
-    case EuropeanPortuguese => List("AO", "CV", "GW", "MO", "MZ", "ST", "TL")
-        .map("pt-" + _)
-    case SwissStandardGerman => List("de-LI")
-    case Cantonese           => List(
-        "zh-MO",
-        "zh-Hant-HK",
-        "zh-Hant-MO",
-        "yue",
-      )
-    case TaiwaneseChinese => List("zh-Hant-TW")
-    case Norwegian        => List("no")
-    case _                => Nil
-
-  /** Modern Standard Arabic. */
-  case Arabic extends Language("ar", RightToLeft)
-
-  case Bengali extends Language("bn", LeftToRight)
-
-  case Bulgarian extends Language("bg", LeftToRight)
-
-  case Catalan extends Language("ca", LeftToRight)
-
-  case Chinese extends Language("zh", LeftToRight)
-
-  /**
-    * Mandarin in simplified characters. As Chinese's first variety, it is what
-    * tags such as `zh` and `zh-SG` find where a variety is needed.
-    */
-  case SimplifiedChinese
-    extends Language(
-      "zh-CN",
-      LeftToRight,
-      parent = Some(Chinese),
-    )
-
-  /**
-    * Chinese in traditional characters, as Taiwan and Hong Kong write it, so
-    * that a reader of either is read in the other before simplified Chinese.
-    */
-  case TraditionalChinese
-    extends Language(
-      "zh-Hant",
-      LeftToRight,
-      parent = Some(Chinese),
-    )
-
-  /**
-    * Mandarin in traditional characters, as in Taiwan. As traditional Chinese's
-    * first variety, it is what tags naming no other region find where a variety
-    * is needed.
-    */
-  case TaiwaneseChinese
-    extends Language(
-      "zh-TW",
-      LeftToRight,
-      parent = Some(TraditionalChinese),
-    )
-
-  /**
-    * Cantonese in traditional characters. Having no two-letter code, it is
-    * `zh-HK`, the tag its readers' browsers send.
-    */
-  case Cantonese
-    extends Language(
-      "zh-HK",
-      LeftToRight,
-      parent = Some(TraditionalChinese),
-    )
-
-  case Croatian extends Language("hr", LeftToRight)
-
-  case Czech extends Language("cs", LeftToRight)
-
-  case Danish extends Language("da", LeftToRight)
-
-  case Dutch extends Language("nl", LeftToRight)
-
-  case English extends Language("en", LeftToRight)
-
-  case BritishEnglish
-    extends Language(
-      "en-GB",
-      LeftToRight,
-      parent = Some(English),
-    )
-
-  case AmericanEnglish
-    extends Language(
-      "en-US",
-      LeftToRight,
-      parent = Some(English),
-    )
-
-  case AustralianEnglish
-    extends Language(
-      "en-AU",
-      LeftToRight,
-      parent = Some(English),
-    )
-
-  case Estonian extends Language("et", LeftToRight)
-
-  /** Under `fil`, the tag browsers send for it, as `tl` names Tagalog. */
-  case Filipino extends Language("fil", LeftToRight)
-
-  case Finnish extends Language("fi", LeftToRight)
-
-  case French extends Language("fr", LeftToRight)
-
-  case German extends Language("de", LeftToRight)
-
-  case GermanGerman
-    extends Language(
-      "de-DE",
-      LeftToRight,
-      parent = Some(German),
-    )
-
-  /**
-    * German as Switzerland writes and speaks it, under `de-CH`, the tag its
-    * readers' browsers send, and read in Swiss Standard German where a variety
-    * is needed. Like any language's, a reader naming it is read in any variety
-    * supported, so in the dialects where Swiss Standard German is not. It is
-    * not `SwissGerman`, which names the dialects.
-    */
-  case GermanOfSwitzerland
-    extends Language(
-      "de-CH",
-      LeftToRight,
-      parent = Some(German),
-    )
-
-  /**
-    * Swiss Standard German, written without `ß`, under `de-CH-1996`, the
-    * reformed Swiss spelling.
-    */
-  case SwissStandardGerman
-    extends Language(
-      "de-CH-1996",
-      LeftToRight,
-      parent = Some(GermanOfSwitzerland),
-    )
-
-  /**
-    * The Alemannic dialects of Switzerland, under `gsw`, their own code. Their
-    * speakers mostly write Swiss Standard German instead. Alsatian shares the
-    * code, having no case of its own, so `gsw-FR` finds Swiss German too.
-    */
-  case SwissGerman
-    extends Language(
-      "gsw",
-      LeftToRight,
-      parent = Some(GermanOfSwitzerland),
-    )
-
-  case Greek extends Language("el", LeftToRight)
-
-  case Hebrew extends Language("he", RightToLeft)
-
-  case Hindi extends Language("hi", LeftToRight)
-
-  case Hungarian extends Language("hu", LeftToRight)
-
-  case Indonesian extends Language("id", LeftToRight)
-
-  case Italian extends Language("it", LeftToRight)
-
-  case Japanese extends Language("ja", LeftToRight)
-
-  case Korean extends Language("ko", LeftToRight)
-
-  case Latvian extends Language("lv", LeftToRight)
-
-  case Lithuanian extends Language("lt", LeftToRight)
-
-  case Malay extends Language("ms", LeftToRight)
-
-  /** Bokmål, under its own code, claiming Norwegian's `no`. */
-  case Norwegian extends Language("nb", LeftToRight)
-
-  case Persian extends Language("fa", RightToLeft)
-
-  case Polish extends Language("pl", LeftToRight)
-
-  case Portuguese extends Language("pt", LeftToRight)
-
-  case BrazilianPortuguese
-    extends Language(
-      "pt-BR",
-      LeftToRight,
-      parent = Some(Portuguese),
-    )
-
-  case EuropeanPortuguese
-    extends Language(
-      "pt-PT",
-      LeftToRight,
-      parent = Some(Portuguese),
-    )
-
-  case Romanian extends Language("ro", LeftToRight)
-
-  case Russian extends Language("ru", LeftToRight)
-
-  /** Serbian in Cyrillic, its official script. */
-  case Serbian extends Language("sr", LeftToRight)
-
-  case Slovak extends Language("sk", LeftToRight)
-
-  case Slovenian extends Language("sl", LeftToRight)
-
-  case Spanish extends Language("es", LeftToRight)
-
-  case EuropeanSpanish
-    extends Language(
-      "es-ES",
-      LeftToRight,
-      parent = Some(Spanish),
-    )
-
-  case LatinAmericanSpanish
-    extends Language(
-      "es-419",
-      LeftToRight,
-      parent = Some(Spanish),
-    )
-
-  case Swahili extends Language("sw", LeftToRight)
-
-  case Swedish extends Language("sv", LeftToRight)
-
-  case Tamil extends Language("ta", LeftToRight)
-
-  case Thai extends Language("th", LeftToRight)
-
-  case Turkish extends Language("tr", LeftToRight)
-
-  case Ukrainian extends Language("uk", LeftToRight)
-
-  case Urdu extends Language("ur", RightToLeft)
-
-  case Vietnamese extends Language("vi", LeftToRight)
+  /** The language's code. */
+  override def toString: String = code
 
 object Language:
 
-  /** The languages that are no variety of another, in declared order. */
-  def roots: List[Language] = values.toList.filter(_.parent.isEmpty)
+  // Megalingual's own languages, each as a language rather than an object of
+  // its own, so that what holds several is inferred to hold languages, as
+  // `Set(German, French)` a `Set[Language]`.
+
+  val Arabic: Language               = languages.Arabic
+  val Bengali: Language              = languages.Bengali
+  val Bulgarian: Language            = languages.Bulgarian
+  val Catalan: Language              = languages.Catalan
+  val Chinese: Language              = languages.Chinese
+  val SimplifiedChinese: Language    = languages.SimplifiedChinese
+  val TraditionalChinese: Language   = languages.TraditionalChinese
+  val TaiwaneseChinese: Language     = languages.TaiwaneseChinese
+  val Cantonese: Language            = languages.Cantonese
+  val Croatian: Language             = languages.Croatian
+  val Czech: Language                = languages.Czech
+  val Danish: Language               = languages.Danish
+  val Dutch: Language                = languages.Dutch
+  val English: Language              = languages.English
+  val BritishEnglish: Language       = languages.BritishEnglish
+  val AmericanEnglish: Language      = languages.AmericanEnglish
+  val AustralianEnglish: Language    = languages.AustralianEnglish
+  val Estonian: Language             = languages.Estonian
+  val Filipino: Language             = languages.Filipino
+  val Finnish: Language              = languages.Finnish
+  val French: Language               = languages.French
+  val German: Language               = languages.German
+  val GermanGerman: Language         = languages.GermanGerman
+  val GermanOfSwitzerland: Language  = languages.GermanOfSwitzerland
+  val SwissStandardGerman: Language  = languages.SwissStandardGerman
+  val SwissGerman: Language          = languages.SwissGerman
+  val Greek: Language                = languages.Greek
+  val Hebrew: Language               = languages.Hebrew
+  val Hindi: Language                = languages.Hindi
+  val Hungarian: Language            = languages.Hungarian
+  val Indonesian: Language           = languages.Indonesian
+  val Italian: Language              = languages.Italian
+  val Japanese: Language             = languages.Japanese
+  val Korean: Language               = languages.Korean
+  val Latvian: Language              = languages.Latvian
+  val Lithuanian: Language           = languages.Lithuanian
+  val Malay: Language                = languages.Malay
+  val Norwegian: Language            = languages.Norwegian
+  val Persian: Language              = languages.Persian
+  val Polish: Language               = languages.Polish
+  val Portuguese: Language           = languages.Portuguese
+  val BrazilianPortuguese: Language  = languages.BrazilianPortuguese
+  val EuropeanPortuguese: Language   = languages.EuropeanPortuguese
+  val Romanian: Language             = languages.Romanian
+  val Russian: Language              = languages.Russian
+  val Serbian: Language              = languages.Serbian
+  val Slovak: Language               = languages.Slovak
+  val Slovenian: Language            = languages.Slovenian
+  val Spanish: Language              = languages.Spanish
+  val EuropeanSpanish: Language      = languages.EuropeanSpanish
+  val LatinAmericanSpanish: Language = languages.LatinAmericanSpanish
+  val Swahili: Language              = languages.Swahili
+  val Swedish: Language              = languages.Swedish
+  val Tamil: Language                = languages.Tamil
+  val Thai: Language                 = languages.Thai
+  val Turkish: Language              = languages.Turkish
+  val Ukrainian: Language            = languages.Ukrainian
+  val Urdu: Language                 = languages.Urdu
+  val Vietnamese: Language           = languages.Vietnamese
 
   /**
-    * Finds the language with exactly the given code.
+    * A language that is no variety of another. It gives its flag, plural rule
+    * and names as members.
+    *
+    * @param code
+    *   The language's BCP 47 tag.
+    *
+    * @param direction
+    *   The direction the language is written in.
+    */
+  abstract class Root
+    (
+      override val code: String,
+      override val direction: Direction,
+    )
+    extends Language:
+
+    override final val parent: Option[Language] = None
+
+  /**
+    * A variety of another language, written and counted as it is, and naming
+    * languages as it does but where it gives names of its own. It gives its
+    * flag as a member, and overrides any other where it differs.
+    *
+    * @param code
+    *   The variety's BCP 47 tag.
+    *
+    * @param of
+    *   The language it is a variety of.
+    */
+  abstract class Variety
+    (override val code: String, of: Language)
+    extends Language:
+
+    override final val parent: Option[Language] = Some(of)
+
+    override def direction: Direction = of.direction
+
+    override def plurals: Plural.Rule = of.plurals
+
+    override def names: PartialFunction[Language, String] =
+      PartialFunction.empty
+
+  /** The given languages, in their order. */
+  def all(using languages: Languages): List[Language] = languages.all
+
+  /** The given languages that are no variety of another, in their order. */
+  def roots(using languages: Languages): List[Language] = languages.roots
+
+  /**
+    * Finds the language with exactly the given code among the given ones.
     *
     * @param code
     *   The language's code, as [[Language.code]] gives it.
@@ -385,13 +281,12 @@ object Language:
     * @return
     *   A language, if one has the code.
     */
-  def fromCode(code: String): Option[Language] = values.find(_.code == code)
+  def fromCode(code: String)(using languages: Languages): Option[Language] =
+    languages.fromCode(code)
 
   /**
-    * Finds the language a BCP 47 tag names, as a browser or a `lang` attribute
-    * gives it, ignoring case: the language with the whole tag as its code or
-    * claiming it, else with the longest prefix of it (`de-AT` finds German,
-    * `es-MX` Latin American Spanish).
+    * Finds the language a BCP 47 tag names among the given ones (see
+    * [[Languages.fromTag]]).
     *
     * @param tag
     *   The tag, its parts joined by `-` or `_`.
@@ -399,17 +294,12 @@ object Language:
     * @return
     *   A language, if the tag names one.
     */
-  def fromTag(tag: String): Option[Language] =
-    val parts = tag.trim.split("[-_]").toList.filter(_.nonEmpty)
-    (parts.size to 1 by -1)
-      .iterator
-      .map(parts.take(_).mkString("-"))
-      .flatMap(prefix => values.find(_.tagged(prefix)))
-      .nextOption()
+  def fromTag(tag: String)(using languages: Languages): Option[Language] =
+    languages.fromTag(tag)
 
   /**
-    * Finds the languages that BCP 47 tags name, such as a browser's
-    * preferences.
+    * Finds the languages that BCP 47 tags name among the given ones, such as a
+    * browser's preferences.
     *
     * @param tags
     *   The tags, most preferred first.
@@ -417,21 +307,22 @@ object Language:
     * @return
     *   The languages named, in the tags' order, each once.
     */
-  def fromTags(tags: Seq[String]): List[Language] = tags
-    .flatMap(fromTag)
-    .distinct
-    .toList
+  def fromTags(tags: Seq[String])(using languages: Languages): List[Language] =
+    languages.fromTags(tags)
 
-  /** Kept as its code, refusing any other. */
-  given Codec[Language] = Codec.from(
+  /** Kept as its code, refusing any but the given languages'. */
+  given (using languages: Languages): Codec[Language] = Codec.from(
     Decoder
       .decodeString
-      .emap(code => fromCode(code).toRight(s"No language has the code $code.")),
+      .emap(code =>
+        languages.fromCode(code).toRight(s"No language has the code $code."),
+      ),
     Encoder.encodeString.contramap(_.code),
   )
 
   /** A map's key kept as its code. */
   given KeyEncoder[Language] = KeyEncoder.encodeKeyString.contramap(_.code)
 
-  /** A map's key read from its code, refusing any other. */
-  given KeyDecoder[Language] = KeyDecoder.instance(fromCode)
+  /** A map's key read from its code, refusing any but the given languages'. */
+  given (using languages: Languages): KeyDecoder[Language] = KeyDecoder
+    .instance(languages.fromCode)

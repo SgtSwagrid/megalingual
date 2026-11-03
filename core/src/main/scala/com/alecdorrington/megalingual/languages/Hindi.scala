@@ -1,0 +1,79 @@
+package com.alecdorrington.megalingual
+package languages
+
+import com.alecdorrington.megalingual.Direction.LeftToRight
+
+object Hindi extends Language.Root("hi", LeftToRight):
+
+  override lazy val flag: Flag = Flag.drawn(
+    """<rect width="60" height="40" fill="#ffffff"/>""" +
+      """<rect width="60" height="13.33" fill="#ff9933"/>""" +
+      """<rect y="26.67" width="60" height="13.33" fill="#138808"/>""" +
+      """<circle cx="30" cy="20" r="5.5" fill="none" stroke="#000080" """ +
+      """stroke-width="1"/>""" +
+      """<path d="M24.5,20 H35.5 M30,14.5 V25.5 M26.1,16.1 L33.9,23.9 """ +
+      """M26.1,23.9 L33.9,16.1" stroke="#000080" stroke-width="0.6"/>""",
+  )
+
+  override def plurals: Plural.Rule = Plural.zeroOrOne
+
+  override def names: PartialFunction[Language, String] =
+    case Arabic               => "अरबी"
+    case Bengali              => "बांग्ला"
+    case Bulgarian            => "बुल्गारियाई"
+    case Catalan              => "कातालान"
+    case Chinese              => "चीनी"
+    case SimplifiedChinese    => "सरलीकृत चीनी"
+    case TraditionalChinese   => "पारंपरिक चीनी"
+    case TaiwaneseChinese     => "पारंपरिक चीनी (ताइवान)"
+    case Cantonese            => "कैंटोनीज़"
+    case Croatian             => "क्रोएशियाई"
+    case Czech                => "चेक"
+    case Danish               => "डेनिश"
+    case Dutch                => "डच"
+    case English              => "अंग्रेज़ी"
+    case BritishEnglish       => "ब्रिटिश अंग्रेज़ी"
+    case AmericanEnglish      => "अमेरिकी अंग्रेज़ी"
+    case AustralianEnglish    => "ऑस्ट्रेलियाई अंग्रेज़ी"
+    case Estonian             => "एस्टोनियाई"
+    case Filipino             => "फ़िलिपीनो"
+    case Finnish              => "फ़िनिश"
+    case French               => "फ़्रेंच"
+    case German               => "जर्मन"
+    case GermanGerman         => "जर्मन (जर्मनी)"
+    case GermanOfSwitzerland  => "जर्मन (स्विट्ज़रलैंड)"
+    case SwissStandardGerman  => "स्विस उच्च जर्मन"
+    case SwissGerman          => "स्विस जर्मन"
+    case Greek                => "यूनानी"
+    case Hebrew               => "हिब्रू"
+    case Hindi                => "हिन्दी"
+    case Hungarian            => "हंगेरियाई"
+    case Indonesian           => "इंडोनेशियाई"
+    case Italian              => "इतालवी"
+    case Japanese             => "जापानी"
+    case Korean               => "कोरियाई"
+    case Latvian              => "लातवियाई"
+    case Lithuanian           => "लिथुआनियाई"
+    case Malay                => "मलय"
+    case Norwegian            => "नॉर्वेजियाई"
+    case Persian              => "फ़ारसी"
+    case Polish               => "पोलिश"
+    case Portuguese           => "पुर्तगाली"
+    case BrazilianPortuguese  => "ब्राज़ीली पुर्तगाली"
+    case EuropeanPortuguese   => "यूरोपीय पुर्तगाली"
+    case Romanian             => "रोमानियाई"
+    case Russian              => "रूसी"
+    case Serbian              => "सर्बियाई"
+    case Slovak               => "स्लोवाक"
+    case Slovenian            => "स्लोवेनियाई"
+    case Spanish              => "स्पेनिश"
+    case EuropeanSpanish      => "यूरोपीय स्पेनिश"
+    case LatinAmericanSpanish => "लैटिन अमेरिकी स्पेनिश"
+    case Swahili              => "स्वाहिली"
+    case Swedish              => "स्वीडिश"
+    case Tamil                => "तमिल"
+    case Thai                 => "थाई"
+    case Turkish              => "तुर्की"
+    case Ukrainian            => "यूक्रेनियाई"
+    case Urdu                 => "उर्दू"
+    case Vietnamese           => "वियतनामी"

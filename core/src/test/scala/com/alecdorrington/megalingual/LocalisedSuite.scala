@@ -33,7 +33,11 @@ class LocalisedSuite extends FunSuite:
     )
     assertEquals(
       Localised.all(English).languages,
-      Language.values.toList,
+      Languages.builtIn.all,
+    )
+    assertEquals(
+      Localised.all(English)(using Added.languages).languages,
+      Added.languages.all,
     )
     assertEquals(
       Localised.all(English)(Cantonese),
@@ -123,6 +127,33 @@ class LocalisedSuite extends FunSuite:
         .only(GermanGerman, SwissGerman)
         .negotiate(None, fromTags(List("de-CH", "de"))),
       SwissGerman,
+    )
+
+  test(
+    "A language added is read in the tree of the languages given, and listed among them",
+  ):
+    given Languages = Added.languages
+    assertEquals(
+      localised.resolve(Added.AustrianGerman),
+      GermanGerman,
+    )
+    assertEquals(
+      Localised
+        .only(GermanGerman, Added.AustrianGerman)
+        .negotiate(None, fromTags(List("de-AT", "de"))),
+      Added.AustrianGerman,
+    )
+    assertEquals(
+      Localised.only(Added.AustrianGerman, SwissGerman).listed,
+      List(
+        German,
+        SwissGerman,
+        Added.AustrianGerman,
+      ),
+    )
+    assertEquals(
+      Localised.only(French, Added.MexicanSpanish).resolve(Spanish),
+      Added.MexicanSpanish,
     )
 
   test(

@@ -1,0 +1,76 @@
+package com.alecdorrington.megalingual
+package languages
+
+import com.alecdorrington.megalingual.Direction.LeftToRight
+
+object Estonian extends Language.Root("et", LeftToRight):
+
+  override lazy val flag: Flag = Flag.bands(
+    vertical = false,
+    "#0072ce",
+    "#000000",
+    "#ffffff",
+  )
+
+  override def plurals: Plural.Rule = Plural.oneOrOther
+
+  override def names: PartialFunction[Language, String] =
+    case Arabic               => "araabia"
+    case Bengali              => "bengali"
+    case Bulgarian            => "bulgaaria"
+    case Catalan              => "katalaani"
+    case Chinese              => "hiina"
+    case SimplifiedChinese    => "lihtsustatud hiina"
+    case TraditionalChinese   => "traditsiooniline hiina"
+    case TaiwaneseChinese     => "traditsiooniline hiina (Taiwan)"
+    case Cantonese            => "kantoni"
+    case Croatian             => "horvaadi"
+    case Czech                => "tšehhi"
+    case Danish               => "taani"
+    case Dutch                => "hollandi"
+    case English              => "inglise"
+    case BritishEnglish       => "Briti inglise"
+    case AmericanEnglish      => "Ameerika inglise"
+    case AustralianEnglish    => "Austraalia inglise"
+    case Estonian             => "eesti"
+    case Filipino             => "filipiini"
+    case Finnish              => "soome"
+    case French               => "prantsuse"
+    case German               => "saksa"
+    case GermanGerman         => "saksa (Saksamaa)"
+    case GermanOfSwitzerland  => "saksa (Šveits)"
+    case SwissStandardGerman  => "Šveitsi ülemsaksa"
+    case SwissGerman          => "šveitsisaksa"
+    case Greek                => "kreeka"
+    case Hebrew               => "heebrea"
+    case Hindi                => "hindi"
+    case Hungarian            => "ungari"
+    case Indonesian           => "indoneesia"
+    case Italian              => "itaalia"
+    case Japanese             => "jaapani"
+    case Korean               => "korea"
+    case Latvian              => "läti"
+    case Lithuanian           => "leedu"
+    case Malay                => "malai"
+    case Norwegian            => "norra"
+    case Persian              => "pärsia"
+    case Polish               => "poola"
+    case Portuguese           => "portugali"
+    case BrazilianPortuguese  => "Brasiilia portugali"
+    case EuropeanPortuguese   => "Euroopa portugali"
+    case Romanian             => "rumeenia"
+    case Russian              => "vene"
+    case Serbian              => "serbia"
+    case Slovak               => "slovaki"
+    case Slovenian            => "sloveeni"
+    case Spanish              => "hispaania"
+    case EuropeanSpanish      => "Euroopa hispaania"
+    case LatinAmericanSpanish => "Ladina-Ameerika hispaania"
+    case Swahili              => "suahiili"
+    case Swedish              => "rootsi"
+    case Tamil                => "tamili"
+    case Thai                 => "tai"
+    case Turkish              => "türgi"
+    case Ukrainian            => "ukraina"
+    case Urdu                 => "urdu"
+    case Vietnamese           => "vietnami"
