@@ -187,6 +187,34 @@ trait Language:
     */
   final def within(language: Language): Boolean = lineage.contains(language)
 
+  /**
+    * The variety that the language's words are said in, as a broader language
+    * is read in its first variety where a more specific one is needed: German
+    * in German German, and Chinese in Simplified Chinese.
+    *
+    * @return
+    *   Its first variety among the given languages, through each level, or
+    *   itself if it has none.
+    */
+  final def spoken(using Languages): Language = children
+    .headOption
+    .fold(this)(_.spoken)
+
+  /**
+    * How far this language is from another in the tree: how many steps up from
+    * this to the nearest language that both are within, then down to the other,
+    * as British English is two from American English.
+    *
+    * @param other
+    *   The other language.
+    *
+    * @return
+    *   The steps, if both are of one tree.
+    */
+  final def steps(other: Language): Option[Int] =
+    val up = lineage.indexWhere(other.within)
+    Option.when(up >= 0)(up + other.lineage.indexOf(lineage(up)))
+
   /** The language's code. */
   override def toString: String = code
 

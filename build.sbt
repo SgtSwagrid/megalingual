@@ -56,18 +56,40 @@ lazy val `megalingual-laminar` = projectMatrix
   )
   .jsPlatform(scalaVersions = Seq(scala3))
 
+/**
+  * What the browser knows of its user's languages, and its voices, which say
+  * text aloud, with no Laminar.
+  */
+lazy val `megalingual-web` = projectMatrix
+  .in(file("web"))
+  .dependsOn(megalingual)
+  .settings(
+    name            := "megalingual-web",
+    packagePrefix   := "com.alecdorrington.megalingual.web",
+    sourceDirectory := (ThisBuild / baseDirectory).value / "web" / "src",
+    Dependencies.catsEffect,
+    Dependencies.scalajsDom,
+    Dependencies.munit,
+    Dependencies.munitCatsEffect,
+  )
+  .jsPlatform(scalaVersions = Seq(scala3))
+
 lazy val `megalingual-root` = project
   .in(file("."))
   .enablePlugins(ScalaUnidocPlugin)
-  .aggregate(megalingual.projectRefs ++ `megalingual-laminar`.projectRefs *)
+  .aggregate(
+    megalingual.projectRefs ++ `megalingual-laminar`.projectRefs ++
+      `megalingual-web`.projectRefs *,
+  )
   .settings(
     publish / skip := true,
 
-    // Both modules documented from JavaScript, where both are built, so that
-    // the core's pages link to the picker's.
+    // Every module documented from JavaScript, where every one is built, so
+    // that the core's pages link to the others'.
     ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(
       megalingual.js(scala3),
       `megalingual-laminar`.js(scala3),
+      `megalingual-web`.js(scala3),
     ),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-project", "Megalingual"),
   )

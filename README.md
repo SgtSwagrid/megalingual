@@ -26,6 +26,9 @@ libraryDependencies += "com.alecdorrington" %% "megalingual" % "{version}"
 
 // Laminar language picker component
 libraryDependencies += "com.alecdorrington" %% "megalingual-laminar" % "{version}"
+
+// The browser's languages and voices, for Scala.js
+libraryDependencies += "com.alecdorrington" %% "megalingual-web" % "{version}"
 ```
 
 ## 🗣️ Usage
@@ -62,6 +65,7 @@ in any language:
 import com.alecdorrington.megalingual.*
 import com.alecdorrington.megalingual.Language.*
 import com.alecdorrington.megalingual.laminar.*
+import com.alecdorrington.megalingual.web.Browser
 import com.raquo.laminar.api.L.*
 
 trait Strings:
@@ -100,6 +104,30 @@ val app = div(
 `Written.in(language)` marks an element as written in a language (`lang` and `dir`), and
 `Intl` sorts and lists names as a language does. The picker's stylesheet goes in the page's head,
 so a picker inside a shadow root is unstyled.
+
+### Saying words aloud
+
+`megalingual-web` holds what the browser knows of its reader's languages (`Browser.preferences`, from
+`navigator.languages`) and its voices, which say text aloud through the Web Speech API, in any effect
+with cats-effect's `Async`. The browser's voices read text as it is spelt; none reads IPA.
+
+```scala
+import cats.effect.IO
+import com.alecdorrington.megalingual.Language.*
+import com.alecdorrington.megalingual.web.Speech
+
+val speech = Speech[IO]
+
+speech.voice(German).flatMap:
+  case Some(voice) => speech.say("Guten Tag", voice)
+  case None        => IO.unit
+```
+
+| | Is | Worth knowing |
+| --- | --- | --- |
+| `voices` | The browser's voices, each with its `language` and whether it is `local` | It waits a moment for Chromium, which lists none until first asked. A worker, as an extension's service worker is, has none. |
+| `voice(language)` | The voice that best says the language's words (`Voice.best`) | Of the language's tree, the nearest to the variety it is spoken in (German in German German, `Language.spoken`), then one on the device before one online. None where there is none of its tree. |
+| `say(text, voice)` | Says the text, done once it is said | It cuts short whatever the browser was saying. It begins in its first step, so that a program run at once from a click (as `IO`'s `syncStep` runs one) still has the reader's activation, which a browser may need to speak. Cancelled, it stops. An online voice sends the text to the browser's maker. |
 
 ### Adding languages
 

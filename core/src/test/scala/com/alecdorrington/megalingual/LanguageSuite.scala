@@ -295,3 +295,26 @@ class LanguageSuite extends FunSuite:
       Decoder[Language].decodeJson(Json.fromString("de-CH")),
       Right(GermanOfSwitzerland),
     )
+
+  test(
+    "A language is said in its first variety, through each level, and is as many steps from another as up to the nearest language that both are within, then down to it.",
+  ):
+    assertEquals(German.spoken, GermanGerman)
+    assertEquals(Chinese.spoken, SimplifiedChinese)
+    assertEquals(
+      GermanOfSwitzerland.spoken,
+      SwissStandardGerman,
+    )
+    assertEquals(French.spoken, French)
+    assertEquals(German.steps(German), Some(0))
+    assertEquals(German.steps(GermanGerman), Some(1))
+    assertEquals(GermanGerman.steps(German), Some(1))
+    assertEquals(
+      BritishEnglish.steps(AmericanEnglish),
+      Some(2),
+    )
+    assertEquals(
+      SwissGerman.steps(GermanGerman),
+      Some(3),
+    )
+    assertEquals(German.steps(French), None)
