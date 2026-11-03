@@ -1,21 +1,9 @@
 package com.alecdorrington.megalingual
 package laminar
 
-import com.alecdorrington.megalingual.Direction.LeftToRight
 import com.alecdorrington.megalingual.Language.*
 import com.alecdorrington.megalingual.laminar.LanguagePicker.{Choice, Naming}
 import munit.FunSuite
-
-/** A language Megalingual's own do not name, which names Japanese. */
-private object Esperanto extends Language.Root("eo", LeftToRight):
-
-  override lazy val flag: Flag = Flag.tile(code)
-
-  override def plurals: Plural.Rule = Plural.oneOrOther
-
-  override def names: PartialFunction[Language, String] =
-    case Esperanto => "Esperanto"
-    case Japanese  => "japana"
 
 class LanguagePickerSuite extends FunSuite:
 
@@ -93,9 +81,6 @@ class LanguagePickerSuite extends FunSuite:
     assert(inEnglish.finds(None, "on"))
     assert(!inEnglish.finds(None, "deutsch"))
     assert(!inEnglish.finds(Some(Japanese), "japana"))
-    assert(inEnglish.finds(Some(Japanese), "japana")(
-      using Languages.builtIn ++ List(Esperanto),
-    ))
 
   test(
     "The languages found keep their tree, and the one made active is the chosen, else the first whose name shown begins with what was typed",

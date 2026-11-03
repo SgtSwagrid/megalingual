@@ -140,6 +140,6 @@ class SubstitutionSuite extends FunSuite:
     intercept[IllegalArgumentException](German.respell(text, SwissGerman))
     intercept[IllegalArgumentException](French.respell(text, German))
     assertEquals(
-      Languages.builtIn.all.filter(_.substitutions.nonEmpty),
+      Language.all.filter(_.substitutions.nonEmpty),
       List(GermanOfSwitzerland),
     )

@@ -10,15 +10,11 @@ import io.circe.{Codec, Decoder, Encoder, KeyDecoder, KeyEncoder}
   * read from a code's shape. A broader language is read in its first variety
   * where a more specific one is needed.
   *
-  * Each language is an object saying all there is of it, most simply a
-  * [[Language.Root]] or a [[Language.Variety]], which takes from its parent
-  * what it does not say. Megalingual's own are each in a file of its own in the
-  * `languages` package, [[Languages.builtIn]] lists them, and this companion
-  * holds each as a language (`Language.German`). Another library adds its own
-  * in [[Languages]] of its own, given where languages are looked for. It
-  * declares each at the top level, or within an object: within its own body,
-  * Scala matches an object nested in a class as anything, so its [[names]]
-  * would give every language its own name.
+  * Each language is an object saying all there is of it, a [[Language.Root]] or
+  * a [[Language.Variety]], which takes from its parent what it does not say.
+  * Megalingual's are all there are, each in a file of its own in the
+  * `languages` package: [[Language.all]] lists them, and this companion holds
+  * each as a language (`Language.German`).
   *
   * An app supporting only some languages says so with a [[Localised]], and
   * never matches on every language itself, so that a language added breaks no
@@ -63,13 +59,6 @@ trait Language:
   def names: PartialFunction[Language, String]
 
   /**
-    * The language's own names in languages whose [[names]] lack it, as a
-    * language added outside Megalingual gives its names in Megalingual's, which
-    * cannot name it. A variety does not take its parent's. None by default.
-    */
-  def called: PartialFunction[Language, String] = PartialFunction.empty
-
-  /**
     * The tags besides its code that choose this language where the tree would
     * choose another, or none: `es-MX` would find Spanish, and `no` nothing.
     * None by default.
@@ -88,9 +77,9 @@ trait Language:
 
   /**
     * Names the language in another, as written mid-sentence there (`anglais` in
-    * French): as the other, or a language it is a variety of, names it, else as
-    * this names itself there ([[called]]). A language named neither way is
-    * named as in English, else as in itself, else by its code.
+    * French): as the other, or the nearest language it is a variety of, names
+    * it. Every language names every one, so its code stands in only for a name
+    * missing.
     *
     * @param in
     *   The language to name it in.
@@ -98,18 +87,12 @@ trait Language:
     * @return
     *   A name for the language.
     */
-  final def name(in: Language): String = known(in)
-    .orElse(known(languages.English))
-    .orElse(known(this))
-    .getOrElse(code)
-
-  /** Its name in a language, as that names it, else as this names itself. */
-  private def known(in: Language): Option[String] = in
+  final def name(in: Language): String = in
     .lineage
     .iterator
     .flatMap(_.names.lift(this))
     .nextOption()
-    .orElse(in.lineage.iterator.flatMap(called.lift).nextOption())
+    .getOrElse(code)
 
   /**
     * Names the language in another, as it begins a menu's item or a heading
@@ -169,18 +152,15 @@ trait Language:
   final def lineage: List[Language] = this :: ancestors
 
   /**
-    * The direct varieties among the given languages, in their order, the first
-    * standing in for it.
+    * The direct varieties, in [[Language.all]]'s order, the first standing in
+    * for it.
     */
-  final def children(using languages: Languages): List[Language] = languages
+  final def children: List[Language] = Language
     .all
     .filter(_.parent.contains(this))
 
-  /**
-    * Every variety of this language among the given ones, however deep, each
-    * before its own.
-    */
-  final def descendants(using Languages): List[Language] =
+  /** Every variety of this language, however deep, each before its own. */
+  final def descendants: List[Language] =
     children.flatMap(child => child :: child.descendants)
 
   /**
@@ -197,12 +177,9 @@ trait Language:
     * in German German, and Chinese in Simplified Chinese.
     *
     * @return
-    *   Its first variety among the given languages, through each level, or
-    *   itself if it has none.
+    *   Its first variety, through each level, or itself if it has none.
     */
-  final def spoken(using Languages): Language = children
-    .headOption
-    .fold(this)(_.spoken)
+  final def spoken: Language = children.headOption.fold(this)(_.spoken)
 
   /**
     * How far this language is from another in the tree: how many steps up from
@@ -289,8 +266,75 @@ object Language:
   val Vietnamese: Language           = languages.Vietnamese
 
   /**
+    * Every language, in alphabetical order of their English names, each variety
+    * after its parent. It follows the aliases, which would be unset before
+    * them.
+    */
+  val all: List[Language] = List(
+    Arabic,
+    Bengali,
+    Bulgarian,
+    Catalan,
+    Chinese,
+    SimplifiedChinese,
+    TraditionalChinese,
+    TaiwaneseChinese,
+    Cantonese,
+    Croatian,
+    Czech,
+    Danish,
+    Dutch,
+    English,
+    BritishEnglish,
+    AmericanEnglish,
+    AustralianEnglish,
+    Estonian,
+    Filipino,
+    Finnish,
+    French,
+    German,
+    GermanGerman,
+    GermanOfSwitzerland,
+    SwissStandardGerman,
+    SwissGerman,
+    Greek,
+    Hebrew,
+    Hindi,
+    Hungarian,
+    Indonesian,
+    Italian,
+    Japanese,
+    Korean,
+    Latvian,
+    Lithuanian,
+    Malay,
+    Norwegian,
+    Persian,
+    Polish,
+    Portuguese,
+    BrazilianPortuguese,
+    EuropeanPortuguese,
+    Romanian,
+    Russian,
+    Serbian,
+    Slovak,
+    Slovenian,
+    Spanish,
+    EuropeanSpanish,
+    LatinAmericanSpanish,
+    Swahili,
+    Swedish,
+    Tamil,
+    Thai,
+    Turkish,
+    Ukrainian,
+    Urdu,
+    Vietnamese,
+  )
+
+  /**
     * A language that is no variety of another. It gives its flag, plural rule
-    * and names as members.
+    * and names as members. Only Megalingual makes one.
     *
     * @param code
     *   The language's BCP 47 tag.
@@ -298,19 +342,18 @@ object Language:
     * @param direction
     *   The direction the language is written in.
     */
-  abstract class Root
-    (
-      override val code: String,
-      override val direction: Direction,
-    )
-    extends Language:
+  abstract class Root private[megalingual] (
+    override val code: String,
+    override val direction: Direction,
+  ) extends Language:
 
     override final val parent: Option[Language] = None
 
   /**
     * A variety of another language, written and counted as it is, and naming
     * languages as it does but where it gives names of its own. It gives its
-    * flag as a member, and overrides any other where it differs.
+    * flag as a member, and overrides any other where it differs. Only
+    * Megalingual makes one.
     *
     * @param code
     *   The variety's BCP 47 tag.
@@ -318,9 +361,10 @@ object Language:
     * @param of
     *   The language it is a variety of.
     */
-  abstract class Variety
-    (override val code: String, of: Language)
-    extends Language:
+  abstract class Variety private[megalingual] (
+    override val code: String,
+    of: Language,
+  ) extends Language:
 
     override final val parent: Option[Language] = Some(of)
 
@@ -331,14 +375,11 @@ object Language:
     override def names: PartialFunction[Language, String] =
       PartialFunction.empty
 
-  /** The given languages, in their order. */
-  def all(using languages: Languages): List[Language] = languages.all
-
-  /** The given languages that are no variety of another, in their order. */
-  def roots(using languages: Languages): List[Language] = languages.roots
+  /** The languages that are no variety of another, in their order. */
+  def roots: List[Language] = all.filter(_.parent.isEmpty)
 
   /**
-    * Finds the language with exactly the given code among the given ones.
+    * Finds the language with exactly the given code.
     *
     * @param code
     *   The language's code, as [[Language.code]] gives it.
@@ -346,12 +387,13 @@ object Language:
     * @return
     *   A language, if one has the code.
     */
-  def fromCode(code: String)(using languages: Languages): Option[Language] =
-    languages.fromCode(code)
+  def fromCode(code: String): Option[Language] = all.find(_.code == code)
 
   /**
-    * Finds the language a BCP 47 tag names among the given ones (see
-    * [[Languages.fromTag]]).
+    * Finds the language a BCP 47 tag names, as a browser or a `lang` attribute
+    * gives it, ignoring case: the language with the whole tag as its code, else
+    * the one claiming it, else the language with the longest prefix of it
+    * (`de-AT` finds German, `es-MX` Latin American Spanish).
     *
     * @param tag
     *   The tag, its parts joined by `-` or `_`.
@@ -359,12 +401,22 @@ object Language:
     * @return
     *   A language, if the tag names one.
     */
-  def fromTag(tag: String)(using languages: Languages): Option[Language] =
-    languages.fromTag(tag)
+  def fromTag(tag: String): Option[Language] =
+    val parts = tag.trim.split("[-_]").toList.filter(_.nonEmpty)
+    (parts.size to 1 by -1)
+      .iterator
+      .map(parts.take(_).mkString("-"))
+      .flatMap(tagged)
+      .nextOption()
+
+  /** The language with a tag as its code, else the one claiming it. */
+  private def tagged(tag: String): Option[Language] = all
+    .find(_.code.equalsIgnoreCase(tag))
+    .orElse(all.find(_.claims.exists(_.equalsIgnoreCase(tag))))
 
   /**
-    * Finds the languages that BCP 47 tags name among the given ones, such as a
-    * browser's preferences.
+    * Finds the languages that BCP 47 tags name, such as a browser's
+    * preferences.
     *
     * @param tags
     *   The tags, most preferred first.
@@ -372,22 +424,21 @@ object Language:
     * @return
     *   The languages named, in the tags' order, each once.
     */
-  def fromTags(tags: Seq[String])(using languages: Languages): List[Language] =
-    languages.fromTags(tags)
+  def fromTags(tags: Seq[String]): List[Language] = tags
+    .flatMap(fromTag)
+    .distinct
+    .toList
 
-  /** Kept as its code, refusing any but the given languages'. */
-  given (using languages: Languages): Codec[Language] = Codec.from(
+  /** Kept as its code, refusing any other. */
+  given Codec[Language] = Codec.from(
     Decoder
       .decodeString
-      .emap(code =>
-        languages.fromCode(code).toRight(s"No language has the code $code."),
-      ),
+      .emap(code => fromCode(code).toRight(s"No language has the code $code.")),
     Encoder.encodeString.contramap(_.code),
   )
 
   /** A map's key kept as its code. */
   given KeyEncoder[Language] = KeyEncoder.encodeKeyString.contramap(_.code)
 
-  /** A map's key read from its code, refusing any but the given languages'. */
-  given (using languages: Languages): KeyDecoder[Language] = KeyDecoder
-    .instance(languages.fromCode)
+  /** A map's key read from its code, refusing any other. */
+  given KeyDecoder[Language] = KeyDecoder.instance(fromCode)
