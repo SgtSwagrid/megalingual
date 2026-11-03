@@ -45,7 +45,12 @@ French.name(in = German)  // "Französisch"
 English.title(in = French) // "Anglais", as it begins a menu's item
 Polish.plural(22)          // Plural.Few
 Language.fromTag("es-MX")  // Some(LatinAmericanSpanish)
+
+SwissStandardGerman.respell("Straße", German) // "Strasse"
 ```
+
+A variety that spells its parent's words otherwise says how, as a `Respelling` of regular-expression
+substitutions, which its own varieties take too: German as Switzerland writes it has no `ß`.
 
 An app names the languages it supports in a `Localised`, with what it has in each, such as its
 interface's text. A language outside them is read in the nearest one: a variety of it, else its
