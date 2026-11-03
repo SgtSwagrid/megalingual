@@ -1,5 +1,5 @@
 package com.alecdorrington.megalingual
-package laminar
+package web
 
 import scala.scalajs.js
 import scala.util.Try

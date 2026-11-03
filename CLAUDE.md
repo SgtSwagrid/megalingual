@@ -14,9 +14,28 @@ Keep it concise and actionable.
 This is a Scala library of languages with their names and flags, and a Laminar picker for choosing one. It replaces
 the language lists and pickers Themis and Codeswitch each had, and holds whatever about a language is not one app's.
 
-- Two modules: `megalingual` (`core/`, JVM and Scala.js, depending on circe alone) and `megalingual-laminar`
-  (`laminar/`, Scala.js alone, on Laminar 18). Nothing in the core touches Laminar or the DOM, so that a JVM server
-  or a project without Laminar takes it alone. Each matrix pins its `sourceDirectory` to this build's base.
+- Three modules: `megalingual` (`core/`, JVM and Scala.js, depending on circe alone), `megalingual-laminar`
+  (`laminar/`, Scala.js alone, on Laminar 18) and `megalingual-web` (`web/`, Scala.js alone, on cats-effect and
+  scalajs-dom, with no Laminar). Nothing in the core touches Laminar or the DOM, so that a JVM server or a project
+  without Laminar takes it alone, and what touches the browser but not Laminar is in `web`, so that a project
+  without Laminar (as an extension's content script, whose bundle must stay small) takes it without Laminar. Each
+  matrix pins its `sourceDirectory` to this build's base.
+- `web` holds `Browser.preferences` (`navigator.languages`) and the browser's speech, `Speech[F[_] : Async]` (the
+  Web Speech API, generic in its effect as Iris is), moved there from Omnibrowser's `omnibrowser-megalingual`, as
+  nothing in it is an extension's. It reads the global `speechSynthesis` each time (none in a worker). `voices`
+  waits up to `Speech.patience` (a second) for `voiceschanged` where none are listed, as Chromium lists none until
+  first asked. `Voice.best` (pure) takes a voice of the language's tree, the fewest `steps` from its `spoken`
+  variety (core's `Language.spoken`, its first variety through each level, and `steps`, up to the nearest language
+  both are within, then down), on the device before online, then the given `Languages`' order; an app may choose
+  among fewer, as Code Switch keeps Swiss German apart from German. `say` makes the utterance, listens, and calls
+  `cancel` then `speak` all in its first step (`Saying.begin`), as a browser may need the user's activation, which
+  `IO`'s `syncStep` keeps only up to the first asynchronous step; it ends at `end`, or an `error` of `interrupted`
+  or `canceled` (cut short), fails with `SpeechError` on any other, and cancelled, cancels the browser's speech only
+  while its utterance is still being said and is the latest begun (`Saying.latest`), as one cut short counts as
+  being said until its `interrupted` event, a moment after what cut it short began. The `Saying` holds the
+  utterance until then, as Chromium may otherwise collect it and never fire its events. Its tests run in Node,
+  which has no speech, over a stub `speechSynthesis` and `SpeechSynthesisUtterance` whose events they fire by
+  hand.
 - `Language` is an open trait, so that other libraries (and Code Switch) add languages without a release here. Each of
   Megalingual's is an `object` in a file of its own in `languages/` (package `com.alecdorrington.megalingual.languages`),
   saying all there is of it: its code, `Direction`, parent, `claims` (tags it takes where the tree would choose
