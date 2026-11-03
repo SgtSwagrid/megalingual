@@ -49,8 +49,8 @@ Language.fromTag("es-MX")  // Some(LatinAmericanSpanish)
 SwissStandardGerman.respell("Straße", German) // "Strasse"
 ```
 
-A variety that spells its parent's words otherwise says how, as a `Respelling` of regular-expression
-substitutions, which its own varieties take too: German as Switzerland writes it has no `ß`.
+A variety that spells its parent's words otherwise says how, as a list of regular-expression
+`Substitution`s, which its own varieties take too: German as Switzerland writes it has no `ß`.
 
 An app names the languages it supports in a `Localised`, with what it has in each, such as its
 interface's text. A language outside them is read in the nearest one: a variety of it, else its
