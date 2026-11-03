@@ -33,25 +33,25 @@ anything else; write the data yourself, checking it against CLDR where that help
      Cantonese's read Taiwan's traditional Chinese, the two share a parent of their own (`zh-Hant` above `zh-TW` and
      `zh-HK`, `de-CH` above Swiss Standard German and Swiss German), which is then a language with varieties like
      any other.
-2. **List it.** Add it to `Languages.builtIn` (`Languages.scala`) and to the aliases in `Language`'s companion
-   (`val <Name>: Language = languages.<Name>`, in `Language.scala`), both in alphabetical order of its English name,
-   with a variety after its parent (and after the parent's other varieties).
+2. **List it.** Add it to the aliases in `Language`'s companion (`val <Name>: Language = languages.<Name>`, in
+   `Language.scala`) and to `Language.all` below them, both in alphabetical order of its English name, with a variety
+   after its parent (and after the parent's other varieties).
 3. **Its name in every language.** Add a case to the `names` of every root, in the same place as in
-   `Languages.builtIn`, and to a variety's only where it names the language otherwise than its parent. Each name is
+   `Language.all`, and to a variety's only where it names the language otherwise than its parent. Each name is
    the one a native writer of that language uses, as it reads mid-sentence (lower case in French, "anglais");
    `Language.title` capitalises it for menus. Within one language no two languages may share a name, so a parent and
    its varieties all differ.
-4. **Every language's name in it.** A root's `names` names every language, itself too, in `Languages.builtIn`'s
+4. **Every language's name in it.** A root's `names` names every language, itself too, in `Language.all`'s
    order, as `override def names: PartialFunction[Language, String]` of `case <Language> => "<name>"`. A variety's
    names only those it names otherwise than its parent, as `EuropeanPortuguese.scala` does, or none at all.
 5. **Check.** Run `sbt "scalafmtAll; testFull"`, with `WERROR=1` set as CI has it. The tests check that every
    language names every other in its `names` (or its parent's), that no name repeats within a language, that no
-   variety repeats its parent's name, that every code finds its language, and that every language has a plural
-   category for every count. Add a row for the new language to `PluralSuite`'s table, in `Languages.builtIn`'s
-   order, even if it shares a rule with another (with the rule's counts, if the rule is new): the table names every
-   language, each with its rule, and must equal `Languages.builtIn`.
+   variety repeats its parent's name, that codes are distinct and each finds its language, that each parent is
+   listed before its varieties, and that every language has a plural category for every count. Add a row for the
+   new language to `PluralSuite`'s table, in `Language.all`'s order, even if it shares a rule with another (with the
+   rule's counts, if the rule is new): the table names every language, each with its rule, and must equal
+   `Language.all`.
 
 Apps using Megalingual need no change: they name the languages they support in a `Localised`, never all of them, and
-pickers offer what the app lists. An app or library that needs a language Megalingual lacks can declare it the same
-way in its own code, as a top-level object (or one within an object), and give `Languages.builtIn ++ List(<it>)`
-where languages are looked for; its `called` names it in Megalingual's languages, which cannot name it themselves.
+pickers offer what the app lists. Megalingual's languages are all there are: an app needing one it lacks gets it
+added here, as only Megalingual can make a `Language.Root` or `Language.Variety`.

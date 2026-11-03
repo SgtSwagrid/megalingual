@@ -54,13 +54,10 @@ final class Speech[F[_] : Async] private[web] (
     * @param language
     *   The language.
     *
-    * @param languages
-    *   The languages known.
-    *
     * @return
     *   The voice, if the browser has one of the language's tree.
     */
-  def voice(language: Language)(using languages: Languages): F[Option[Voice]] =
+  def voice(language: Language): F[Option[Voice]] =
     voices.map(Voice.best(language, _))
 
   /**

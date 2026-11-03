@@ -26,7 +26,7 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   waits up to `Speech.patience` (a second) for `voiceschanged` where none are listed, as Chromium lists none until
   first asked. `Voice.best` (pure) takes a voice of the language's tree, the fewest `steps` from its `spoken`
   variety (core's `Language.spoken`, its first variety through each level, and `steps`, up to the nearest language
-  both are within, then down), on the device before online, then the given `Languages`' order; an app may choose
+  both are within, then down), on the device before online, then `Language.all`'s order; an app may choose
   among fewer, as Code Switch keeps Swiss German apart from German. `say` makes the utterance, listens, and calls
   `cancel` then `speak` all in its first step (`Saying.begin`), as a browser may need the user's activation, which
   `IO`'s `syncStep` keeps only up to the first asynchronous step; it ends at `end`, or an `error` of `interrupted`
@@ -36,30 +36,30 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   utterance until then, as Chromium may otherwise collect it and never fire its events. Its tests run in Node,
   which has no speech, over a stub `speechSynthesis` and `SpeechSynthesisUtterance` whose events they fire by
   hand.
-- `Language` is an open trait, so that other libraries (and Code Switch) add languages without a release here. Each of
-  Megalingual's is an `object` in a file of its own in `languages/` (package `com.alecdorrington.megalingual.languages`),
-  saying all there is of it: its code, `Direction`, parent, `claims` (tags it takes where the tree would choose
-  another), flag (SVG markup, drawn with `Flag`'s shapes), plural rule (`plurals`, a shared rule of `Plural`'s or its
-  own) and `names` (the names it gives languages). A root extends `Language.Root(code, direction)`; a variety
-  `Language.Variety(code, of = parent)`, which takes its parent's direction, plural rule and names, so its file holds
-  only what differs (a test fails a variety's name equal to its parent's). Flags are `lazy val`s and plural rules and
-  names `def`s, so that code using none of them links none (Code Switch's page bundle links no names or flags), and a
-  flag is drawn only when shown; codes and parents are `val`s.
-- A registry, `Languages`, knows languages: `Languages.builtIn` (a `given` in its companion, so the default wherever
-  no other is given) lists Megalingual's own in alphabetical order of their English names, each variety after its
-  parent; another library gives `Languages.builtIn ++ theirs`. It refuses two languages with one code (ignoring case)
-  or a parent missing. Whatever goes from a code or tag to a language, or lists languages, takes a `(using
-  Languages)`: `Language.fromCode`, `fromTag` (a code before a claim, then the longest prefix), `fromTags`, `roots`,
-  `all`, `children`, `descendants`, the circe codecs, `Localised`, the picker and `Browser.preferences`. Adding a
-  language means its file, its line in `Languages.builtIn` and its alias in `Language`'s companion, where each is a
-  `val` typed `Language` (`Language.German`), so that `Set(German, French)` is inferred a `Set[Language]`, as the enum's
-  cases were; the objects' own singleton types would infer unions or `Language.Root`. `PluralSuite`'s table, of every
-  alias, must equal `builtIn`, so a language left out of either fails it. Apps must never match on every language: they name those they support in a
+- Megalingual's languages are all there are, never one project's: an app needing another gets it added here.
+  `Language` is a trait, each language an `object` in a file of its own in `languages/` (package
+  `com.alecdorrington.megalingual.languages`), saying all there is of it: its code, `Direction`, parent, `claims` (tags
+  it takes where the tree would choose another), flag (SVG markup, drawn with `Flag`'s shapes), plural rule
+  (`plurals`, a shared rule of `Plural`'s or its own) and `names` (the names it gives languages). A root extends
+  `Language.Root(code, direction)`; a variety `Language.Variety(code, of = parent)`, which takes its parent's
+  direction, plural rule and names, so its file holds only what differs (a test fails a variety's name equal to its
+  parent's). Their constructors are `private[megalingual]`, so only Megalingual (and its tests) makes a language.
+  Flags are `lazy val`s and plural rules and names `def`s, so that code using none of them links none (Code Switch's
+  page bundle links no names or flags), and a flag is drawn only when shown; codes and parents are `val`s.
+- `Language.all` lists every language, in alphabetical order of their English names, each variety after its parent;
+  its order says which variety stands in for a broader language (its first child). It follows the aliases in
+  `Language`'s companion, each a `val` typed `Language` (`Language.German`), so that `Set(German, French)` is inferred
+  a `Set[Language]`, as the enum's cases were (the objects' own singleton types would infer unions or
+  `Language.Root`); before them it would hold nulls. `fromCode`, `fromTag` (a code before a claim, then the longest
+  prefix), `fromTags`, `roots`, `children`, `descendants`, the circe codecs, `Localised`, the picker, `Voice.best` and
+  `Browser.preferences` all look in it. Tests, not a registry, check that codes are distinct (ignoring case) and that
+  each parent is listed before its varieties. Adding a language means its file, its alias and its line in
+  `Language.all`; `PluralSuite`'s table, of every alias, must equal `Language.all`, so a language left out of either
+  fails it. Apps must never match on every language: they name those they support in a
   `Localised`, whose partial function's domain is the set and whose values are made only when read.
 - Every name is written by hand (agents, not a generator from CLDR), in the `names` of the language named in, as
   written mid-sentence there; `title` capitalises the first letter for menus. `name(in)` looks in `in`'s lineage's
-  `names`, then in the named language's `called` (its own names in languages whose `names` lack it, for a language
-  added elsewhere), then falls back to its English name, its own name for itself, then its code. A variety names only
+  `names`, falling back to the code only for a name missing, which the tests forbid. A variety names only
   what it names otherwise than its parent (`EuropeanPortuguese`'s few, `Cantonese`'s, Hong Kong's, over
   `TraditionalChinese`'s, Taiwan's; `SwissGerman`'s over German's); `Chinese` holds the simplified table that
   `SimplifiedChinese` takes. Tests, not the compiler, check every built-in language names every one: the
@@ -71,8 +71,8 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   way down from `ancestor` (exclusive) to the language, top down, and refuses an `ancestor` the language is not within.
   `GermanOfSwitzerland` alone has one (`ß` as `ss`, `ẞ` as `SS`), which Swiss Standard German and Swiss German take by
   walking the tree, never German or German German.
-- `Localised` reads a language outside the set in its nearest supported one, in the tree of the `Languages` given when
-  it is made: itself, its first supported variety, else its parent's nearest, else the default. The tree alone says which languages read each other best: varieties
+- `Localised` reads a language outside the set in its nearest supported one: itself, its first supported variety,
+  else its parent's nearest, else the default. The tree alone says which languages read each other best: varieties
   whose readers do share a parent of their own (Taiwan's and Hong Kong's under `zh-Hant`, Swiss Standard German and
   Swiss German under `de-CH`), so each is read in the other before the rest. `negotiate` takes the reader's choice
   first, then each preference that is supported itself or by a variety, and only then reads any in another
@@ -108,6 +108,7 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
 
 - Within its own body, Scala matches an object nested in a class (as a test's `private object`) as anything, so its
   `names` would give every language its own name: declare test languages at the top level or within an object.
+- `Language.all` must stay below the aliases in `Language`'s companion: an object's `val`s are set in order.
 - `Language.Root` and `Language.Variety` stay abstract classes: as traits with parameters, scalac 3.9.0 crashed in
   erasure ("object English has bad parents"). As `transparent` classes, a join of objects stayed a union.
 - `export` cannot take a wildcard from a package, so `Language`'s companion names each language.

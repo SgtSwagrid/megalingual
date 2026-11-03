@@ -121,6 +121,6 @@ class RespellingSuite extends FunSuite:
     intercept[IllegalArgumentException](German.respell(text, SwissGerman))
     intercept[IllegalArgumentException](French.respell(text, German))
     assertEquals(
-      Languages.builtIn.all.filter(_.respelling != Respelling.none),
+      Language.all.filter(_.respelling != Respelling.none),
       List(GermanOfSwitzerland),
     )

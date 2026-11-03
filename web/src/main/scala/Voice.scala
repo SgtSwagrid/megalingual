@@ -28,14 +28,8 @@ final case class Voice
   )
   derives Codec:
 
-  /**
-    * The language it speaks, among those given, if its tag names one.
-    *
-    * @param languages
-    *   The languages known.
-    */
-  def language(using languages: Languages): Option[Language] = languages
-    .fromTag(tag)
+  /** The language it speaks, if its tag names one. */
+  def language: Option[Language] = Language.fromTag(tag)
 
 object Voice:
 
@@ -44,10 +38,10 @@ object Voice:
     * the nearest to the variety the language is spoken in
     * ([[Language.spoken]]), as German is in German German and Chinese in
     * Simplified Chinese; then one on the device before one online; then the
-    * first of the given languages, as Taiwanese Mandarin comes before Cantonese
-    * for Simplified Chinese; then the first voice. An app may choose among
-    * fewer, as one that keeps Swiss German apart from German would choose none
-    * of German (Switzerland) for it, though it is nearest in the tree.
+    * first in [[Language.all]]'s order, as Taiwanese Mandarin comes before
+    * Cantonese for Simplified Chinese; then the first voice. An app may choose
+    * among fewer, as one that keeps Swiss German apart from German would choose
+    * none of German (Switzerland) for it, though it is nearest in the tree.
     *
     * @param language
     *   The language.
@@ -55,17 +49,11 @@ object Voice:
     * @param voices
     *   The voices to choose among.
     *
-    * @param languages
-    *   The languages known.
-    *
     * @return
     *   The voice, if any is of the language's tree, as a voice of another
     *   language would read its words as its own.
     */
-  def best
-    (language: Language, voices: List[Voice])
-    (using languages: Languages)
-    : Option[Voice] =
+  def best(language: Language, voices: List[Voice]): Option[Voice] =
     val spoken = language.spoken
     voices
       .flatMap(voice =>
@@ -74,7 +62,7 @@ object Voice:
           .flatMap(own =>
             own
               .steps(spoken)
-              .map(steps => (steps, !voice.local, languages.all.indexOf(own))),
+              .map(steps => (steps, !voice.local, Language.all.indexOf(own))),
           )
           .map(_ -> voice),
       )
