@@ -23,6 +23,9 @@ anything else; write the data yourself, checking it against CLDR where that help
      else its own, `n => ...`, of counts never negative.
    - If browsers name it by tags that would otherwise reach another language, or none (`es-MX` for `es-419`, `no`
      for `nb`), list them in `override def claims`.
+   - A variety that spells its parent's words otherwise, as German of Switzerland writes `ß` as `ss`, says how in
+     `override def respelling`, of `Substitution`s; its own varieties take it, so it goes on the broadest variety
+     that spells so.
    - A second variety of a language turns it into one with varieties: add a file for each beneath it (`en-GB` and
      `en-US` beneath `en`), give the parent `Flag.tile(code)`, and list first among its children the variety a reader
      naming only the language should get. Codes may change: nothing keeps old ones readable.

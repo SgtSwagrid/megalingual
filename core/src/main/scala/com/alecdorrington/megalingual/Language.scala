@@ -77,6 +77,14 @@ trait Language:
   def claims: List[String] = Nil
 
   /**
+    * How the language writes its parent's text, by default as its parent does
+    * ([[Respelling.none]]), so that a variety takes the respellings of the
+    * languages it is a variety of (see [[respell]]). It is a `def`, so that
+    * code respelling nothing links none.
+    */
+  def respelling: Respelling = Respelling.none
+
+  /**
     * Names the language in another, as written mid-sentence there (`anglais` in
     * French): as the other, or a language it is a variety of, names it, else as
     * this names itself there ([[called]]). A language named neither way is
@@ -124,6 +132,31 @@ trait Language:
     *   A category, which the language words its own way.
     */
   final def plural(count: Long): Plural = plurals(math.abs(count))
+
+  /**
+    * Writes text as this language writes it, from as a language it belongs to
+    * writes it: respelt by each language on the way down from that one to this
+    * one, in turn (Swiss Standard German writes German's `Straße` as
+    * `Strasse`).
+    *
+    * @param text
+    *   The text, as `ancestor` writes it.
+    *
+    * @param ancestor
+    *   This language, or one it is a variety of.
+    *
+    * @return
+    *   The text as this language writes it.
+    */
+  final def respell(text: String, ancestor: Language): String =
+    require(
+      within(ancestor),
+      s"$this is $ancestor or a variety of it.",
+    )
+    lineage
+      .takeWhile(_ != ancestor)
+      .reverse
+      .foldLeft(text)((text, language) => language.respelling(text))
 
   /** The languages this is a variety of, the nearest first. */
   final def ancestors: List[Language] = parent.toList.flatMap(_.lineage)

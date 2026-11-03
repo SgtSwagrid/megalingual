@@ -45,6 +45,13 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   `TraditionalChinese`'s, Taiwan's; `SwissGerman`'s over German's); `Chinese` holds the simplified table that
   `SimplifiedChinese` takes. Tests, not the compiler, check every built-in language names every one: the
   `add-language` skill (`.claude/skills/`) says how to add a language.
+- A language's `respelling` is how it writes its parent's text: `Substitution`s (a Java regular expression and a
+  replacement naming its groups `$1` to `$9`, `\` making the next character plain) applied in one pass, each point
+  taking the first that matches there (the earliest match, ties to the first listed), so that what one writes no
+  other rewrites. It is `Respelling.none` by default. `language.respell(text, ancestor)` applies each respelling on the
+  way down from `ancestor` (exclusive) to the language, top down, and refuses an `ancestor` the language is not within.
+  `GermanOfSwitzerland` alone has one (`ß` as `ss`, `ẞ` as `SS`), which Swiss Standard German and Swiss German take by
+  walking the tree, never German or German German.
 - `Localised` reads a language outside the set in its nearest supported one, in the tree of the `Languages` given when
   it is made: itself, its first supported variety, else its parent's nearest, else the default. The tree alone says which languages read each other best: varieties
   whose readers do share a parent of their own (Taiwan's and Hong Kong's under `zh-Hant`, Swiss Standard German and
