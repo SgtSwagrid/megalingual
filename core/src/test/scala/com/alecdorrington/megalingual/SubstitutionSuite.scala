@@ -1,6 +1,7 @@
 package com.alecdorrington.megalingual
 
 import com.alecdorrington.megalingual.Language.*
+import com.alecdorrington.megalingual.Substitution.substituted
 import munit.FunSuite
 
 /** A variety of Swiss Standard German respelling what it writes again. */
@@ -12,79 +13,97 @@ object Respelt
 
   override lazy val flag: Flag = SwissStandardGerman.flag
 
-  override def respelling: Respelling =
-    Respelling(List(Substitution("ss", "sz")))
+  override def substitutions: List[Substitution] =
+    List(Substitution("ss", "sz"))
 
-class RespellingSuite extends FunSuite:
+class SubstitutionSuite extends FunSuite:
 
   test(
-    "A respelling substitutes in one pass, each point taking the first substitution matching there",
+    "Substitutions are made in one pass, each point taking the first matching there",
   ):
     assertEquals(
-      Respelling(List(
-        Substitution("a", "b"),
-        Substitution("b", "c"),
-      ))("abc"),
+      substituted(
+        "abc",
+        List(
+          Substitution("a", "b"),
+          Substitution("b", "c"),
+        ),
+      ),
       "bcc",
     )
     assertEquals(
-      Respelling(List(
-        Substitution("ab", "1"),
-        Substitution("a", "2"),
-      ))("abac"),
+      substituted(
+        "abac",
+        List(
+          Substitution("ab", "1"),
+          Substitution("a", "2"),
+        ),
+      ),
       "12c",
     )
     assertEquals(
-      Respelling(List(
-        Substitution("a", "2"),
-        Substitution("ab", "1"),
-      ))("abac"),
+      substituted(
+        "abac",
+        List(
+          Substitution("a", "2"),
+          Substitution("ab", "1"),
+        ),
+      ),
       "2b2c",
     )
     assertEquals(
-      Respelling(List(
-        Substitution("b", "x"),
-        Substitution("ab", "y"),
-      ))("ab"),
+      substituted(
+        "ab",
+        List(
+          Substitution("b", "x"),
+          Substitution("ab", "y"),
+        ),
+      ),
       "y",
     )
-    assertEquals(Respelling.none("Straße"), "Straße")
+    assertEquals(substituted("Straße", Nil), "Straße")
     assertEquals(
-      Respelling(List(Substitution("x", "y")))(""),
+      substituted("", List(Substitution("x", "y"))),
       "",
     )
 
   test(
     "A replacement names the pattern's groups by `$1`, and makes a character plain by `\\`",
   ):
-    val respelling = Respelling(List(
+    val substitutions = List(
       Substitution("""(\d+) (EUR|CHF)""", "$2 $1"),
       Substitution("""(x)?y""", "[$1]"),
       Substitution("""\$""", """\$1"""),
-    ))
+    )
     assertEquals(
-      respelling("5 EUR, 7 CHF"),
+      substituted("5 EUR, 7 CHF", substitutions),
       "EUR 5, CHF 7",
     )
-    assertEquals(respelling("xy y"), "[x] []")
-    assertEquals(respelling("$"), "$1")
+    assertEquals(
+      substituted("xy y", substitutions),
+      "[x] []",
+    )
+    assertEquals(substituted("$", substitutions), "$1")
     intercept[IllegalArgumentException](Substitution("a", "$1"))
 
   test("An empty match is substituted once, before the character at it"):
     assertEquals(
-      Respelling(List(Substitution("(?=b)", "-")))("abab"),
+      substituted(
+        "abab",
+        List(Substitution("(?=b)", "-")),
+      ),
       "a-ba-b",
     )
     assertEquals(
-      Respelling(List(Substitution("^", "> ")))("ab"),
+      substituted("ab", List(Substitution("^", "> "))),
       "> ab",
     )
     assertEquals(
-      Respelling(List(Substitution("$", ".")))("ab"),
+      substituted("ab", List(Substitution("$", "."))),
       "ab.",
     )
     assertEquals(
-      Respelling(List(Substitution("", "-")))("ab"),
+      substituted("ab", List(Substitution("", "-"))),
       "-a-b-",
     )
 
@@ -121,6 +140,6 @@ class RespellingSuite extends FunSuite:
     intercept[IllegalArgumentException](German.respell(text, SwissGerman))
     intercept[IllegalArgumentException](French.respell(text, German))
     assertEquals(
-      Languages.builtIn.all.filter(_.respelling != Respelling.none),
+      Languages.builtIn.all.filter(_.substitutions.nonEmpty),
       List(GermanOfSwitzerland),
     )

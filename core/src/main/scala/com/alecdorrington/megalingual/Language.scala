@@ -77,12 +77,14 @@ trait Language:
   def claims: List[String] = Nil
 
   /**
-    * How the language writes its parent's text, by default as its parent does
-    * ([[Respelling.none]]), so that a variety takes the respellings of the
-    * languages it is a variety of (see [[respell]]). It is a `def`, so that
-    * code respelling nothing links none.
+    * The substitutions by which the language writes its parent's text, made in
+    * one pass: each point of the text, from its start, takes the first that
+    * matches there, and what that writes is never rewritten by another. None by
+    * default, as the language writes as its parent does, so that a variety
+    * takes the substitutions of the languages it is a variety of (see
+    * [[respell]]). It is a `def`, so that code respelling nothing links none.
     */
-  def respelling: Respelling = Respelling.none
+  def substitutions: List[Substitution] = Nil
 
   /**
     * Names the language in another, as written mid-sentence there (`anglais` in
@@ -135,9 +137,9 @@ trait Language:
 
   /**
     * Writes text as this language writes it, from as a language it belongs to
-    * writes it: respelt by each language on the way down from that one to this
-    * one, in turn (Swiss Standard German writes German's `Straße` as
-    * `Strasse`).
+    * writes it: with the [[substitutions]] of each language on the way down
+    * from that one to this one made in turn (Swiss Standard German writes
+    * German's `Straße` as `Strasse`).
     *
     * @param text
     *   The text, as `ancestor` writes it.
@@ -156,7 +158,9 @@ trait Language:
     lineage
       .takeWhile(_ != ancestor)
       .reverse
-      .foldLeft(text)((text, language) => language.respelling(text))
+      .foldLeft(text)((text, language) =>
+        Substitution.substituted(text, language.substitutions),
+      )
 
   /** The languages this is a variety of, the nearest first. */
   final def ancestors: List[Language] = parent.toList.flatMap(_.lineage)

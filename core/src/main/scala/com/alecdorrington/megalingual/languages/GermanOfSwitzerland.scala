@@ -13,7 +13,7 @@ object GermanOfSwitzerland extends Language.Variety("de-CH", of = German):
 
   override lazy val flag: Flag = Flag.tile(code)
 
-  override def respelling: Respelling = Respelling(List(
+  override def substitutions: List[Substitution] = List(
     Substitution("ß", "ss"),
     Substitution("ẞ", "SS"),
-  ))
+  )
