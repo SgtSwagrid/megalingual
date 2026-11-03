@@ -9,11 +9,15 @@ object Browser:
 
   /**
     * The languages the browser's user prefers, most preferred first, from
-    * `navigator.languages`. It reads the global `navigator`, so serves a page,
-    * a worker and an extension's service worker alike, and is empty where there
-    * is none.
+    * `navigator.languages`, among those given. It reads the global `navigator`,
+    * so serves a page, a worker and an extension's service worker alike, and is
+    * empty where there is none.
+    *
+    * @param languages
+    *   The languages known.
     */
-  def preferences: List[Language] = Language.fromTags(tags)
+  def preferences(using languages: Languages): List[Language] = languages
+    .fromTags(tags)
 
   private def tags: List[String] = Try:
     val navigator = js.Dynamic.global.navigator

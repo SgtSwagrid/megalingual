@@ -13,10 +13,11 @@ import scala.scalajs.js
   *
   * It is an ARIA listbox, searched by a combobox above it that keeps the focus
   * while the list is open, so that whatever is typed is searched for. The list
-  * keeps the languages any of whose names, in any language, holds what was
-  * typed, ignoring case and accents. Arrow keys, Home and End move through it,
-  * Enter chooses, and Escape, Tab or a click elsewhere closes it. A letter
-  * typed on the button opens the list, searching for it.
+  * keeps the languages any of whose names, in any language given
+  * ([[Languages]]), holds what was typed, ignoring case and accents. Arrow
+  * keys, Home and End move through it, Enter chooses, and Escape, Tab or a
+  * click elsewhere closes it. A letter typed on the button opens the list,
+  * searching for it.
   *
   * The interface's language and the label are signals, so that the picker stays
   * where it is, and keeps the focus, when the interface changes language.
@@ -69,6 +70,7 @@ object LanguagePicker:
       ownFirst: Boolean = false,
       named: Boolean = true,
     )
+    (using Languages)
     : HtmlElement = Picker(
     in.map(Naming(_, ownFirst, none = "")),
     (naming, query) => choices(languages, naming, query),
@@ -120,6 +122,7 @@ object LanguagePicker:
       ownFirst: Boolean = false,
       named: Boolean = true,
     )
+    (using Languages)
     : HtmlElement = Picker(
     in.combineWith(none).map((in, none) => Naming(in, ownFirst, none)),
     (naming, query) =>
@@ -174,14 +177,18 @@ object LanguagePicker:
       name => folded(name).startsWith(folded(typed)),
     )
 
-    /** Whether any of a choice's names, in any language, holds what was typed. */
+    /**
+      * Whether any of a choice's names, in any language known, holds what was
+      * typed.
+      */
     def finds
       (
         language: Option[Language],
         typed: String,
       )
+      (using known: Languages)
       : Boolean = language
-      .fold(List(none))(language => Language.values.toList.map(language.name))
+      .fold(List(none))(language => known.all.map(language.name))
       .exists(name => folded(name).contains(folded(typed)))
 
   /** Text in lower case without its accents (`Čeština` as `cestina`). */
@@ -203,6 +210,7 @@ object LanguagePicker:
       naming: Naming,
       query: String,
     )
+    (using Languages)
     : List[Choice] =
     val offered = languages
       .distinct

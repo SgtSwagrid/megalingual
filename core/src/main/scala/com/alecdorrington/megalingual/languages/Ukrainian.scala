@@ -1,0 +1,72 @@
+package com.alecdorrington.megalingual
+package languages
+
+import com.alecdorrington.megalingual.Direction.LeftToRight
+
+object Ukrainian extends Language.Root("uk", LeftToRight):
+
+  override lazy val flag: Flag =
+    Flag.bands(vertical = false, "#0057b7", "#ffd700")
+
+  override def plurals: Plural.Rule = Plural.eastSlavic
+
+  override def names: PartialFunction[Language, String] =
+    case Arabic               => "арабська"
+    case Bengali              => "бенгальська"
+    case Bulgarian            => "болгарська"
+    case Catalan              => "каталонська"
+    case Chinese              => "китайська"
+    case SimplifiedChinese    => "китайська (спрощене письмо)"
+    case TraditionalChinese   => "китайська (традиційне письмо)"
+    case TaiwaneseChinese     => "китайська (традиційне письмо, Тайвань)"
+    case Cantonese            => "кантонська"
+    case Croatian             => "хорватська"
+    case Czech                => "чеська"
+    case Danish               => "данська"
+    case Dutch                => "нідерландська"
+    case English              => "англійська"
+    case BritishEnglish       => "британська англійська"
+    case AmericanEnglish      => "американська англійська"
+    case AustralianEnglish    => "австралійська англійська"
+    case Estonian             => "естонська"
+    case Filipino             => "філіппінська"
+    case Finnish              => "фінська"
+    case French               => "французька"
+    case German               => "німецька"
+    case GermanGerman         => "німецька (Німеччина)"
+    case GermanOfSwitzerland  => "німецька (Швейцарія)"
+    case SwissStandardGerman  => "верхньонімецька (Швейцарія)"
+    case SwissGerman          => "швейцарська німецька"
+    case Greek                => "грецька"
+    case Hebrew               => "іврит"
+    case Hindi                => "гінді"
+    case Hungarian            => "угорська"
+    case Indonesian           => "індонезійська"
+    case Italian              => "італійська"
+    case Japanese             => "японська"
+    case Korean               => "корейська"
+    case Latvian              => "латиська"
+    case Lithuanian           => "литовська"
+    case Malay                => "малайська"
+    case Norwegian            => "норвезька"
+    case Persian              => "перська"
+    case Polish               => "польська"
+    case Portuguese           => "португальська"
+    case BrazilianPortuguese  => "бразильська португальська"
+    case EuropeanPortuguese   => "європейська португальська"
+    case Romanian             => "румунська"
+    case Russian              => "російська"
+    case Serbian              => "сербська"
+    case Slovak               => "словацька"
+    case Slovenian            => "словенська"
+    case Spanish              => "іспанська"
+    case EuropeanSpanish      => "європейська іспанська"
+    case LatinAmericanSpanish => "латиноамериканська іспанська"
+    case Swahili              => "суахілі"
+    case Swedish              => "шведська"
+    case Tamil                => "тамільська"
+    case Thai                 => "тайська"
+    case Turkish              => "турецька"
+    case Ukrainian            => "українська"
+    case Urdu                 => "урду"
+    case Vietnamese           => "вʼєтнамська"

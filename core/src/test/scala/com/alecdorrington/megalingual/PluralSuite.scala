@@ -171,7 +171,7 @@ class PluralSuite extends FunSuite:
 
   test("Every language has a category for every count"):
     for
-      language <- Language.values
+      language <- Languages.builtIn.all
       count    <- -3 to 1_000_001 by 997
     do language.plural(count)
 
@@ -239,10 +239,7 @@ class PluralSuite extends FunSuite:
       Urdu                 -> oneOrOther,
       Vietnamese           -> noPlural,
     )
-    assertEquals(
-      rules.map(_._1),
-      Language.values.toList,
-    )
+    assertEquals(rules.map(_._1), Languages.builtIn.all)
     rules.foreach((language, rule) =>
       rule.foreach((count, category) =>
         assertEquals(

@@ -17,19 +17,36 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
 - Two modules: `megalingual` (`core/`, JVM and Scala.js, depending on circe alone) and `megalingual-laminar`
   (`laminar/`, Scala.js alone, on Laminar 18). Nothing in the core touches Laminar or the DOM, so that a JVM server
   or a project without Laminar takes it alone. Each matrix pins its `sourceDirectory` to this build's base.
-- `Language` is one enum of every language, as a tree of varieties (`parent`), each with its code and `Direction`
-  in its case, and its flag (`Flag.of`, SVG markup), plural rule (`Plural.of`) and name in every language (`names/`)
-  each in a match of its own, in its type's companion where it has one, so that code using none of them links none, and a flag is drawn only when shown. Those
-  matches have no wildcard, so that a language added breaks the build until every fact of it is written (CI compiles
-  with `-Werror`); `claims` lists only the exceptions. Apps must never match on every language: they name
-  those they support in a `Localised`, whose partial function's domain is the set and whose values are made only
-  when read.
-- Every name is written by hand (agents, not a generator from CLDR), one `In<Language>` object per language named in,
-  as written mid-sentence there; `title` capitalises the first letter for menus. Varieties naming languages alike
-  share one object, and one differing in a few overrides them and falls back to the object it overrides
-  (`InEuropeanPortuguese` to `InPortuguese`, `InCantonese`, Hong Kong's, to `InTraditionalChinese`, Taiwan's). The `add-language` skill (`.claude/skills/`) says how to add a language.
-- `Localised` reads a language outside the set in its nearest supported one: itself, its first supported variety,
-  else its parent's nearest, else the default. The tree alone says which languages read each other best: varieties
+- `Language` is an open trait, so that other libraries (and Code Switch) add languages without a release here. Each of
+  Megalingual's is an `object` in a file of its own in `languages/` (package `com.alecdorrington.megalingual.languages`),
+  saying all there is of it: its code, `Direction`, parent, `claims` (tags it takes where the tree would choose
+  another), flag (SVG markup, drawn with `Flag`'s shapes), plural rule (`plurals`, a shared rule of `Plural`'s or its
+  own) and `names` (the names it gives languages). A root extends `Language.Root(code, direction)`; a variety
+  `Language.Variety(code, of = parent)`, which takes its parent's direction, plural rule and names, so its file holds
+  only what differs (a test fails a variety's name equal to its parent's). Flags are `lazy val`s and plural rules and
+  names `def`s, so that code using none of them links none (Code Switch's page bundle links no names or flags), and a
+  flag is drawn only when shown; codes and parents are `val`s.
+- A registry, `Languages`, knows languages: `Languages.builtIn` (a `given` in its companion, so the default wherever
+  no other is given) lists Megalingual's own in alphabetical order of their English names, each variety after its
+  parent; another library gives `Languages.builtIn ++ theirs`. It refuses two languages with one code (ignoring case)
+  or a parent missing. Whatever goes from a code or tag to a language, or lists languages, takes a `(using
+  Languages)`: `Language.fromCode`, `fromTag` (a code before a claim, then the longest prefix), `fromTags`, `roots`,
+  `all`, `children`, `descendants`, the circe codecs, `Localised`, the picker and `Browser.preferences`. Adding a
+  language means its file, its line in `Languages.builtIn` and its alias in `Language`'s companion, where each is a
+  `val` typed `Language` (`Language.German`), so that `Set(German, French)` is inferred a `Set[Language]`, as the enum's
+  cases were; the objects' own singleton types would infer unions or `Language.Root`. `PluralSuite`'s table, of every
+  alias, must equal `builtIn`, so a language left out of either fails it. Apps must never match on every language: they name those they support in a
+  `Localised`, whose partial function's domain is the set and whose values are made only when read.
+- Every name is written by hand (agents, not a generator from CLDR), in the `names` of the language named in, as
+  written mid-sentence there; `title` capitalises the first letter for menus. `name(in)` looks in `in`'s lineage's
+  `names`, then in the named language's `called` (its own names in languages whose `names` lack it, for a language
+  added elsewhere), then falls back to its English name, its own name for itself, then its code. A variety names only
+  what it names otherwise than its parent (`EuropeanPortuguese`'s few, `Cantonese`'s, Hong Kong's, over
+  `TraditionalChinese`'s, Taiwan's; `SwissGerman`'s over German's); `Chinese` holds the simplified table that
+  `SimplifiedChinese` takes. Tests, not the compiler, check every built-in language names every one: the
+  `add-language` skill (`.claude/skills/`) says how to add a language.
+- `Localised` reads a language outside the set in its nearest supported one, in the tree of the `Languages` given when
+  it is made: itself, its first supported variety, else its parent's nearest, else the default. The tree alone says which languages read each other best: varieties
   whose readers do share a parent of their own (Taiwan's and Hong Kong's under `zh-Hant`, Swiss Standard German and
   Swiss German under `de-CH`), so each is read in the other before the rest. `negotiate` takes the reader's choice
   first, then each preference that is supported itself or by a variety, and only then reads any in another
@@ -57,6 +74,17 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   name shown, the button's too, carries its language's `lang` and `dir`. Everything touching the browser's `Intl`
   falls back to a plain rule where it is missing.
 - The Laminar module's tests run in Node, with no DOM, so they test only what builds no element.
+- Omnibrowser's `omnibrowser-megalingual` (`D:\omnibrowser`) and Code Switch are built against a release of this
+  library, so a change to `Language`'s API needs them moved to the next release, Omnibrowser first, as Code Switch
+  links Omnibrowser's module too.
+
+### Gotchas
+
+- Within its own body, Scala matches an object nested in a class (as a test's `private object`) as anything, so its
+  `names` would give every language its own name: declare test languages at the top level or within an object.
+- `Language.Root` and `Language.Variety` stay abstract classes: as traits with parameters, scalac 3.9.0 crashed in
+  erasure ("object English has bad parents"). As `transparent` classes, a join of objects stayed a union.
+- `export` cannot take a wildcard from a package, so `Language`'s companion names each language.
 
 ## Instructions
 
