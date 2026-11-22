@@ -6,8 +6,10 @@ import scala.util.Try
 
 /**
   * The browser's own rules for a language's text (`Intl`), for what Megalingual
-  * does not write itself: how a language orders words, and how it lists them.
-  * Where the browser lacks a rule, each falls back to a plain one.
+  * does not write itself: how a language orders words, how it lists them, and
+  * what it calls a region. Each asks for the language, else the nearest it is a
+  * variety of that the browser knows, and where the browser lacks a rule, each
+  * falls back to a plain one.
   */
 object Intl:
 
@@ -57,6 +59,27 @@ object Intl:
     ).format(js.Array(names*)).asInstanceOf[String],
   ).getOrElse(names.mkString(", "))
 
+  /**
+    * Names a region as a language names it (`Schweiz` for `CH` in German).
+    *
+    * @param code
+    *   The region's code, as [[Language.region]] gives one: ISO 3166-1's two
+    *   letters (`CH`), or UN M.49's three digits (`419`).
+    *
+    * @param in
+    *   The language to name it in.
+    *
+    * @return
+    *   A name for the region, or its code where the browser knows none.
+    */
+  def region(code: String, in: Language): String = Try(
+    construct(
+      global.DisplayNames,
+      in,
+      js.Dynamic.literal(`type` = "region"),
+    ).of(code).asInstanceOf[js.UndefOr[String]].toOption,
+  ).toOption.flatten.getOrElse(code)
+
   private def comparison(in: Language): (String, String) => Double =
     Try(construct(
       global.Collator,
@@ -75,4 +98,9 @@ object Intl:
       in: Language,
       options: js.Object,
     )
-    : js.Dynamic = js.Dynamic.newInstance(kind)(js.Array(in.code), options)
+    : js.Dynamic = js
+    .Dynamic
+    .newInstance(kind)(
+      js.Array(in.lineage.map(_.code)*),
+      options,
+    )

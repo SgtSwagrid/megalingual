@@ -31,6 +31,12 @@ trait Language:
   /** The language this is a variety of, if any. */
   def parent: Option[Language]
 
+  /**
+    * The region the language's code names, if it names one (`GB` of `en-GB`,
+    * `CH` of `de-CH-1996`, `419` of `es-419`), as [[Language.region]] reads it.
+    */
+  final def region: Option[String] = Language.region(code)
+
   /** The direction the language is written in. */
   def direction: Direction
 
@@ -402,12 +408,43 @@ object Language:
     *   A language, if the tag names one.
     */
   def fromTag(tag: String): Option[Language] =
-    val parts = tag.trim.split("[-_]").toList.filter(_.nonEmpty)
+    val parts = subtags(tag)
     (parts.size to 1 by -1)
       .iterator
       .map(parts.take(_).mkString("-"))
       .flatMap(tagged)
       .nextOption()
+
+  /**
+    * Finds the region a BCP 47 tag names: its region subtag, two letters or
+    * three digits after the language and any extended language or script, in
+    * upper case.
+    *
+    * @param tag
+    *   The tag, as `de-CH-1996`, `zh-Hant-TW` or `fr_fr`.
+    *
+    * @return
+    *   The region (`CH`, `TW`, `FR`, `419`), if the tag names one.
+    */
+  def region(tag: String): Option[String] = subtags(tag)
+    .drop(1)
+    .dropWhile(subtag => (3 to 4).contains(subtag.length) && alphabetic(subtag))
+    .headOption
+    .filter(regional)
+    .map(_.toUpperCase)
+
+  private def subtags(tag: String): List[String] = tag
+    .trim
+    .split("[-_]")
+    .toList
+    .filter(_.nonEmpty)
+
+  private def regional(subtag: String): Boolean =
+    subtag.length == 2 && alphabetic(subtag) ||
+    subtag.length == 3 && subtag.forall(_.isDigit)
+
+  private def alphabetic(subtag: String): Boolean =
+    subtag.forall(letter => ('a' to 'z').contains(letter.toLower))
 
   /** The language with a tag as its code, else the one claiming it. */
   private def tagged(tag: String): Option[Language] = all
