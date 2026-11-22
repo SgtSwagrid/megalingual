@@ -12,7 +12,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>The browser's own rules for a language's text (<code>Intl</code>), for what Megalingual does not write itself: how a language orders words, and how it lists them. Where the browser lacks a rule, each falls back to a plain one.</p>
+  <p>The browser's own rules for a language's text (<code>Intl</code>), for what Megalingual does not write itself: how a language orders words, how it lists them, and what it calls a region. Each asks for the language, else the nearest it is a variety of that the browser knows, and where the browser lacks a rule, each falls back to a plain one.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Attributes</h2>
@@ -122,6 +122,50 @@ node3 -> node2;
               <dt class="body-small">Returns</dt>
               <dd class="body-medium">
                <p>A list of the names.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="region-7aa">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Intl$.html#region-7aa" t="n" class="documentableName ">region</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">code</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">in</span>: <a href="../Language.html" t="t">Language</a>): <span data-unresolved-link="" t="t">String</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Names a region as a language names it (<code>Schweiz</code> for <code>CH</code> in German).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Names a region as a language names it (<code>Schweiz</code> for <code>CH</code> in German).</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">code</dt>
+              <dd class="body-medium">
+               <p>The region's code, as <a href="../Language.html#region-0">Language.region</a> gives one: ISO 3166-1's two letters (<code>CH</code>), or UN M.49's three digits (<code>419</code>).</p>
+              </dd>
+              <dt class="body-small">in</dt>
+              <dd class="body-medium">
+               <p>The language to name it in.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>A name for the region, or its code where the browser knows none.</p>
               </dd>
              </dl>
             </div>
