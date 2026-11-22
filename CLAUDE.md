@@ -20,8 +20,8 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   without Laminar takes it alone, and what touches the browser but not Laminar is in `web`, so that a project
   without Laminar (as an extension's content script, whose bundle must stay small) takes it without Laminar. Each
   matrix pins its `sourceDirectory` to this build's base.
-- `web` holds `Browser.preferences` (`navigator.languages`) and the browser's speech, `Speech[F[_] : Async]` (the
-  Web Speech API, generic in its effect as Iris is), moved there from Omnibrowser's `omnibrowser-megalingual`, as
+- `web` holds `Browser.preferences` (`navigator.languages`; `Browser.regions` are the regions their tags name) and
+  the browser's speech, `Speech[F[_] : Async]` (the Web Speech API, generic in its effect as Iris is), moved there from Omnibrowser's `omnibrowser-megalingual`, as
   nothing in it is an extension's. It reads the global `speechSynthesis` each time (none in a worker). `voices`
   waits up to `Speech.patience` (a second) for `voiceschanged` where none are listed, as Chromium lists none until
   first asked. `Voice.best` (pure) takes a voice of the language's tree, the fewest `steps` from its `spoken`
@@ -52,8 +52,9 @@ the language lists and pickers Themis and Codeswitch each had, and holds whateve
   a `Set[Language]`, as the enum's cases were (the objects' own singleton types would infer unions or
   `Language.Root`); before them it would hold nulls. `fromCode`, `fromTag` (a code before a claim, then the longest
   prefix), `fromTags`, `roots`, `children`, `descendants`, the circe codecs, `Localised`, the picker, `Voice.best` and
-  `Browser.preferences` all look in it. Tests, not a registry, check that codes are distinct (ignoring case) and that
-  each parent is listed before its varieties. Adding a language means its file, its alias and its line in
+  `Browser.preferences` all look in it. `Language.region` reads a tag's region subtag (after any extended language or
+  script), the one thing read from a code's shape, as a region is no place in the tree. Tests, not a registry, check
+  that codes are distinct (ignoring case) and that each parent is listed before its varieties. Adding a language means its file, its alias and its line in
   `Language.all`; `PluralSuite`'s table, of every alias, must equal `Language.all`, so a language left out of either
   fails it. Apps must never match on every language: they name those they support in a
   `Localised`, whose partial function's domain is the set and whose values are made only when read.

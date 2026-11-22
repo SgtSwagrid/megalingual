@@ -247,3 +247,24 @@ class LanguageSuite extends FunSuite:
       Some(3),
     )
     assertEquals(German.steps(French), None)
+
+  test("A tag's region is its region subtag, after any script, in upper case"):
+    assertEquals(
+      Language.region("de-CH-1996"),
+      Some("CH"),
+    )
+    assertEquals(
+      Language.region("zh-Hant-TW"),
+      Some("TW"),
+    )
+    assertEquals(
+      Language.region("zh-yue-HK"),
+      Some("HK"),
+    )
+    assertEquals(Language.region("fr_fr"), Some("FR"))
+    assertEquals(Language.region("es-419"), Some("419"))
+    assertEquals(Language.region("zh-Hant"), None)
+    assertEquals(Language.region("de-1996"), None)
+    assertEquals(Language.region("en"), None)
+    assertEquals(BritishEnglish.region, Some("GB"))
+    assertEquals(English.region, None)

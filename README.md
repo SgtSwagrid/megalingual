@@ -45,6 +45,8 @@ French.name(in = German)  // "Französisch"
 English.title(in = French) // "Anglais", as it begins a menu's item
 Polish.plural(22)          // Plural.Few
 Language.fromTag("es-MX")  // Some(LatinAmericanSpanish)
+Language.region("es-MX")   // Some("MX")
+BritishEnglish.region      // Some("GB")
 
 SwissStandardGerman.respell("Straße", German) // "Strasse"
 ```
@@ -102,13 +104,14 @@ val app = div(
 ```
 
 `Written.in(language)` marks an element as written in a language (`lang` and `dir`), and
-`Intl` sorts and lists names as a language does. The picker's stylesheet goes in the page's head,
+`Intl` sorts and lists names as a language does, and names regions as it does
+(`Intl.region("CH", German)` is `"Schweiz"`). The picker's stylesheet goes in the page's head,
 so a picker inside a shadow root is unstyled.
 
 ### Saying words aloud
 
 `megalingual-web` holds what the browser knows of its reader's languages (`Browser.preferences`, from
-`navigator.languages`) and its voices, which say text aloud through the Web Speech API, in any effect
+`navigator.languages`, and the regions they name, `Browser.regions`) and its voices, which say text aloud through the Web Speech API, in any effect
 with cats-effect's `Async`. The browser's voices read text as it is spelt; none reads IPA.
 
 ```scala

@@ -15,6 +15,12 @@ object Browser:
     */
   def preferences: List[Language] = Language.fromTags(tags)
 
+  /**
+    * The regions the browser's preferred languages name (`CH` of `de-CH`), most
+    * preferred first, each once, as [[Language.region]] reads them.
+    */
+  def regions: List[String] = tags.flatMap(Language.region).distinct
+
   private def tags: List[String] = Try:
     val navigator = js.Dynamic.global.navigator
     val languages = navigator
